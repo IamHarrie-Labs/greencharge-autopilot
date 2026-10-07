@@ -73,18 +73,28 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.configMap.enabled }}
           volumeMounts:
+            {{- if .Values.configMap.enabled }}
             - name: config-volume
               mountPath: /app/config
               readOnly: true
-          {{- end }}
-      {{- if .Values.configMap.enabled }}
+            {{- end }}
+            # The dataspace file (ENACT Task 1). Optional: the pod starts
+            # without it, and the app re-reads the file on every request, so
+            # loading it later needs no restart.
+            - name: carbon-feed
+              mountPath: /app/carbon
+              readOnly: true
       volumes:
+        {{- if .Values.configMap.enabled }}
         - name: config-volume
           configMap:
             name: {{ include "greencharge.fullname" . }}-config
-      {{- end }}
+        {{- end }}
+        - name: carbon-feed
+          configMap:
+            name: greencharge-carbon-feed
+            optional: true
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -117,8 +117,8 @@ test:
 
 image:
 	set -e
-	docker build -t greencharge:1.5 greencharge
-	kind load docker-image greencharge:1.5 --name enact-dev
+	docker build -t greencharge:1.6 greencharge
+	kind load docker-image greencharge:1.6 --name enact-dev
 
 # Build the ENACT policy operator from upstream plus our fix, deploy it, and
 # give it the TDCME token it needs to read metrics.
@@ -153,7 +153,7 @@ evidence:
 
 # ENACT SDK workflow without the Eclipse UI: the same ENACT APM libraries the
 # SDK's Application Packaging, Application Policies and Dataspaces modules use.
-.PHONY: sdk-package sdk-validate-policy sdk-dataspace sdk-deploy
+.PHONY: sdk-package sdk-validate-policy sdk-dataspace sdk-deploy carbon-feed
 sdk-package:
 	cd sdk-workflow && mvn -B -q exec:java -Dexec.args="package ../greencharge/enact-sdk-generated"
 
@@ -163,8 +163,17 @@ sdk-validate-policy:
 	helm template greencharge greencharge/chart -n $(NS) --show-only templates/runtimepolicy.yaml > greencharge/enact-sdk-generated/policy/greencharge-policy.yaml
 	cd sdk-workflow && mvn -B -q exec:java -Dexec.args="validate-policy ../greencharge/enact-sdk-generated/policy/greencharge-policy.yaml"
 
+# Fails when any step fails, including the download (the log is kept either way).
 sdk-dataspace:
-	cd sdk-workflow && mvn -B -q exec:java -Dexec.args="dataspace ../docs/evidence/dataspace" | tee ../docs/evidence/dataspace/5-sdk-edc-client-run.txt
+	cd sdk-workflow && mvn -B -q exec:java -Dexec.args="dataspace ../docs/evidence/dataspace" > ../docs/evidence/dataspace/5-sdk-edc-client-run.txt 2>&1; status=$$?; cat ../docs/evidence/dataspace/5-sdk-edc-client-run.txt; exit $$status
+
+# Give the downloaded dataspace file to the running app (mounted at
+# /app/carbon; GreenCharge re-reads it per request, no restart needed).
+carbon-feed:
+	set -e
+	test -s docs/evidence/dataspace/grid-carbon-intensity.json
+	kubectl -n $(NS) create configmap greencharge-carbon-feed --from-file=grid-carbon-intensity.json=docs/evidence/dataspace/grid-carbon-intensity.json --dry-run=client -o yaml | kubectl apply -f -
+	echo "Within about a minute, GET /carbon reports source 'live (dataspace file)'."
 
 # Deploy GreenCharge from the SDK-generated chart (the autopilot chart still
 # provides the RuntimePolicy and the autopilot: helm install with autopilot only).

@@ -130,6 +130,20 @@ class AutopilotPlanTest {
         assertThat(liveC.getImage()).isEqualTo("greencharge:1.2");
     }
 
+    @Test
+    void missingTelemetryIsReportedNotGuessed() {
+        assertThat(Autopilot.missingTelemetry(obs("enact-dev-worker", 1))).isNull();
+        assertThat(Autopilot.missingTelemetry(new WorkloadObserver.Observation(
+                "greencharge", List.of("enact-dev-worker"), 1, 0, 1, 2 * GI, -1, -1, -1)))
+                .isEqualTo("health URL not answering");
+        assertThat(Autopilot.missingTelemetry(new WorkloadObserver.Observation(
+                "greencharge", List.of(), 0, 0, 1, 2 * GI, -1, -1, -1)))
+                .isEqualTo("no running pod");
+        assertThat(Autopilot.missingTelemetry(new WorkloadObserver.Observation(
+                "greencharge", List.of("enact-dev-worker"), 1, 1, Double.NaN, 2 * GI, -1, -1, 12)))
+                .isEqualTo("resource limits unreadable");
+    }
+
     private static Node node(String name, String region, boolean ready) {
         return new NodeBuilder().withNewMetadata().withName(name)
                 .addToLabels("enact.eu/region", region).endMetadata()

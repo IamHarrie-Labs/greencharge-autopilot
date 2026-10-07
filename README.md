@@ -6,8 +6,10 @@
 
 ENACT can already say what a workload *should* look like: the Application
 Controller recommends `scale_up` or `scale_down`, and the policy operator picks
-a node. Nothing then changes the running workload, and in the hackathon cluster
-the operator could not decide anything at all.
+a node. In the component versions shipped for this challenge
+(`application-controller` 1.0.0, APPLPM image `main-appl`), neither of them
+changes the running workload, and in the hackathon cluster the operator could
+not decide anything at all.
 
 This entry closes that loop for GreenCharge, the challenge's EV-charger routing
 app:
@@ -22,7 +24,7 @@ Everything below was run on the challenge's own 3-node kind cluster
 
 ## Results on the live cluster
 
-Recorded on 7 October 2026; raw records in [docs/evidence/](docs/evidence/) (`run1`, `run2`, `run3`, JSON lines, plus the RuntimePolicy status and pods at the end of each run).
+Recorded on 7 October 2026; raw records in [docs/evidence/](docs/evidence/) (`run1` to `run4`, JSON lines, plus the RuntimePolicy status and pods at the end of each run).
 
 | # | Scenario | What happened | Result |
 |---|---|---|---|
@@ -30,8 +32,9 @@ Recorded on 7 October 2026; raw records in [docs/evidence/](docs/evidence/) (`ru
 | 1 | **GreenCharge starts out of policy**: CPU limit 500m (policy minimum 1 core), on a node the operator did not choose | The AC recommends *"Need to increase CPU from 0.50 cores to 1 cores"*; the autopilot raises the limit to 1 core and moves the pod to `enact-dev-worker2`; rollout verified, health check 55 ms | **adapted and verified** in 105 s |
 | 2 | **A move outside the Hard region** is requested | Guard: *Hard location rule: region "us-east" is not in [eu-west]* | **rejected**, workload unchanged |
 | 3 | **An adaptation that cannot become healthy** (64Gi memory, more than any node has) | The new pod cannot be scheduled; verification times out after 45 s and the autopilot reverts **only** the memory fields it changed. The earlier CPU adaptation (500m → 1) stays in place. Health check 38 ms afterwards | **rolled back** in 100 s |
-| 4 | **A node leaves `eu-west`** (worker2 relabelled `us-east`) | The operator re-decides to `enact-dev-worker` and records why worker2 is now rejected; the autopilot moves GreenCharge, rollout verified, health check 17 ms. When worker2 returns to `eu-west`, the operator keeps its choice: no flapping | **adapted and verified** in 105 s |
+| 4 | **A node leaves `eu-west`** (worker2 relabelled `us-east`) | The operator re-decides to `enact-dev-worker` and records why worker2 is now rejected; the autopilot moves GreenCharge, rollout verified, health check 17 ms. When worker2 returns to `eu-west`, the operator keeps its choice (observed for 40 s, two reconcile periods), with no flapping | **adapted and verified** in 105 s |
 | 5 | **Policy restricted to the edge role** (`nodeSelector: enact.eu/role: edge`, as the brief places GreenCharge on `enact-dev-worker`) | The operator re-decides to `enact-dev-worker`; the autopilot moves GreenCharge there and restores the 1-core minimum that the Helm upgrade had reset; health check 19 ms | **adapted and verified** in 97 s |
+| 6 | **Telemetry disappears** (GreenCharge scaled to zero) | Status becomes *Telemetry unavailable* ("health URL not answering", then "no running pod"); the autopilot makes no change while it lasts (Deployment generation moved only by the scale command). When the app returns, telemetry is restored and recorded; the first slow responses (67 ms against the 50 ms target) are shown as *Deviating*, not *Compliant*, until they settle | **no unsafe action**; honest state throughout |
 
 The evidence timeline for one adaptation, as the autopilot recorded it:
 
@@ -117,7 +120,7 @@ plus JDK 21 and Maven to build the app.
 ```bash
 make setup          # the organisers' ENACT cluster (see SETUP.md)
 make labels         # node labels, in case APPLPM was not ready during setup
-make test           # 11 unit tests, including the two required by the challenge
+make test           # 13 unit tests, including the two required by the challenge
 make image          # build GreenCharge and load it into kind
 make operator-fix   # build the patched ENACT operator from upstream + patch, give it the TDCME token
 make deploy         # GreenCharge + RuntimePolicy + autopilot (Helm)
@@ -181,6 +184,26 @@ These came out of running the autopilot on the live cluster, not from planning:
   `not_applied` with the API server's reason, workload unchanged.
 
 ## Honest limits
+
+- **What the autopilot itself checks.** Before a move it checks the target
+  node's readiness, region, zone and Hard green ratio from node labels. It
+  relies on the ENACT operator for the policy's availability and latency
+  conditions, which it does not re-measure. After a change it confirms that
+  pods from the new revision are Ready, carry the intended CPU, memory and
+  node, and that the app's health endpoint answers.
+- **Which latency is which.** "Health round trip" is measured by the
+  autopilot from inside the cluster to GreenCharge's `/chargers` endpoint. It
+  is passed to the Application Controller as the network latency it checks
+  against the policy model's 50 ms target. It is not the operator's cluster
+  latency from TDCME, and the autopilot reports but does not act on it.
+- **Missing telemetry is reported, never guessed.** If the app does not
+  answer, has no running pod, or its limits cannot be read, the status becomes
+  *Telemetry unavailable* and no adaptation is attempted until telemetry
+  returns. If ENACT reports a deviation the autopilot has no safe action for
+  (network latency, for example), the status is *Deviating*, not *Compliant*.
+- **Sticky placement.** The operator keeps a chosen node while it still
+  passes the Hard rules, so a greener node that appears later does not trigger
+  a move. The autopilot follows the operator's decision; it does not override it.
 
 - **Dataspace (Task 1)**: every step runs through the SDK's EDC client
   (`make sdk-dataspace`): the consumer connector is detected (API v2, push

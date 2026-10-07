@@ -193,7 +193,7 @@
     <div class="kpi"><div class="label">Placement</div><div class="value small mono" id="kNode">-</div><div class="foot" id="kNodeFoot">-</div></div>
     <div class="kpi"><div class="label">CPU limit</div><div class="value" id="kCpu">-</div><div class="foot" id="kCpuFoot">-</div></div>
     <div class="kpi"><div class="label">Memory limit</div><div class="value" id="kMem">-</div><div class="foot" id="kMemFoot">-</div></div>
-    <div class="kpi"><div class="label">Health check</div><div class="value" id="kHealth">-</div><div class="foot" id="kHealthFoot">-</div></div>
+    <div class="kpi"><div class="label">Health endpoint</div><div class="value" id="kHealth">-</div><div class="foot" id="kHealthFoot">-</div></div>
   </section>
 
   <div class="grid">
@@ -310,13 +310,20 @@ function setLive(ok) {
 
 function renderStatus(s) {
   const o = s.observation || {}, p = s.policy || {}, rec = o.recommendation || {};
-  const compliant = s.state === "compliant";
-  $("stateTag").className = "tag " + (compliant ? "t-ok" : s.state === "error" ? "t-bad" : "t-warn");
-  $("stateTag").textContent = compliant ? "Compliant" : s.state === "error" ? "Error" : "Adapting";
+  const STATES = {
+    compliant: ["t-ok", "Compliant"], adapting: ["t-warn", "Adapting"],
+    deviating: ["t-warn", "Deviating, no safe action"], telemetry_unavailable: ["t-bad", "Telemetry unavailable"],
+    error: ["t-bad", "Error"], starting: ["t-neutral", "Starting"],
+  };
+  const [cls, label] = STATES[s.state] || ["t-neutral", s.state];
+  $("stateTag").className = "tag " + cls;
+  $("stateTag").textContent = label;
   $("chipPolicy").textContent = p.name || "-";
 
-  $("kCompliance").innerHTML = compliant ? '<span class="tag t-ok">Compliant</span>' : '<span class="tag t-warn">Deviating</span>';
-  $("kComplianceFoot").textContent = rec.compliant === undefined ? "-" : "Application Controller: " + (rec.compliant ? "compliant" : "not compliant");
+  $("kCompliance").innerHTML = `<span class="tag ${cls}">${esc(label)}</span>`;
+  $("kComplianceFoot").textContent = s.note ? s.note
+    : rec.compliant === undefined ? "Application Controller verdict unavailable"
+    : "Application Controller " + (rec.compliant ? "compliant" : "not compliant");
 
   const nodes = (o.nodes || []).join(", ") || "-";
   $("kNode").textContent = nodes;
@@ -328,8 +335,9 @@ function renderStatus(s) {
   $("kCpuFoot").textContent = c.minRequired !== undefined ? `policy ${c.minRequired}–${c.maxAllowed} cores` + (o.cpuUsagePct >= 0 ? ` · ${o.cpuUsagePct}% used` : "") : "-";
   $("kMem").textContent = o.memoryLimit || "-";
   $("kMemFoot").textContent = m.minRequired ? `policy ${m.minRequired}` + (o.memoryUsagePct >= 0 ? ` · ${o.memoryUsagePct}% used` : "") : "-";
-  $("kHealth").textContent = o.healthLatencyMs >= 0 ? o.healthLatencyMs + " ms" : "down";
-  $("kHealthFoot").textContent = `ready ${o.readyReplicas || "-"} · max ${n.maxAllowedLatencyMs ?? "-"} ms`;
+  const rtt = o.healthLatencyMs;
+  $("kHealth").textContent = rtt === null || rtt === undefined || rtt < 0 ? "unknown" : rtt + " ms";
+  $("kHealthFoot").textContent = `round trip from the autopilot · ready ${o.readyReplicas || "-"}`;
 
   $("decAt").textContent = "updated " + ago(s.at);
   $("dChosen").textContent = p.chosenNode || "-";

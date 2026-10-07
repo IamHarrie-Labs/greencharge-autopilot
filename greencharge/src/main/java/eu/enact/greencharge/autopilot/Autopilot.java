@@ -64,7 +64,14 @@ public class Autopilot {
     private final EvidenceLog evidence;
     private final ReentrantLock lock = new ReentrantLock();
 
+    /** Status values: the policy holds, a change is in progress, ENACT reports a deviation without a safe action, or telemetry is missing. */
+    static final String STATE_COMPLIANT = "compliant";
+    static final String STATE_ADAPTING = "adapting";
+    static final String STATE_DEVIATING = "deviating";
+    static final String STATE_UNKNOWN = "telemetry_unavailable";
+
     private volatile Instant lastAdaptation = Instant.EPOCH;
+    private volatile boolean telemetryWasAvailable = true;
     private volatile Map<String, Object> lastStatus = Map.of("state", "starting");
     private int counter;
 
@@ -99,12 +106,35 @@ public class Autopilot {
         try {
             WorkloadObserver.Observation obs = observer.observe();
             RuntimePolicyView policy = RuntimePolicyView.read(client, props.namespace(), props.policyName());
+
+            // Without a live answer from the workload there is no latency to
+            // report and no baseline to verify a change against. Report the
+            // gap instead of guessing, and change nothing until it closes.
+            String missing = missingTelemetry(obs);
+            if (missing != null) {
+                lastStatus = statusOf(obs, null, policy, List.of(), STATE_UNKNOWN, missing);
+                if (telemetryWasAvailable) {
+                    telemetryWasAvailable = false;
+                    evidence.record(nextId(), Phase.GUARD, "telemetry unavailable (" + missing
+                            + "); no adaptation will be attempted until it returns", observationData(obs, null, policy));
+                }
+                return null;
+            }
+            if (!telemetryWasAvailable) {
+                telemetryWasAvailable = true;
+                evidence.record(nextId(), Phase.DETECT, "telemetry restored; health answered in "
+                        + obs.healthLatencyMs() + " ms", observationData(obs, null, policy));
+            }
+
             AdaptationRecommendation rec = compliance.evaluate(PolicyCompliance.metrics(
                     obs.primaryNode(), obs.cpuLimitCores(), obs.cpuUsagePct(), obs.memoryLimitBytes(),
-                    obs.memoryUsagePct(), Math.max(obs.healthLatencyMs(), 0), props.declaredBandwidthMbps()));
+                    obs.memoryUsagePct(), obs.healthLatencyMs(), props.declaredBandwidthMbps()));
 
             List<Change> plan = plan(obs, rec, policy);
-            lastStatus = statusOf(obs, rec, policy, plan);
+            String state = !plan.isEmpty() ? STATE_ADAPTING
+                    : rec != null && rec.isCompliant() ? STATE_COMPLIANT : STATE_DEVIATING;
+            lastStatus = statusOf(obs, rec, policy, plan, state,
+                    STATE_DEVIATING.equals(state) ? "ENACT reports a deviation the autopilot has no safe action for" : null);
             if (plan.isEmpty()) {
                 return null;
             }
@@ -404,10 +434,12 @@ public class Autopilot {
             if (observed && updated >= want && available >= want && newPodsAvailable) {
                 long latency = observer.healthLatencyMs();
                 if (latency >= 0) {
-                    String mismatch = readBack(plan);
+                    String mismatch = readBack(id, plan);
                     if (mismatch == null) {
-                        evidence.record(id, Phase.VERIFY, "rollout complete and health check answered in " + latency + " ms",
-                                Map.of("healthLatencyMs", latency, "replicas", want));
+                        evidence.record(id, Phase.VERIFY, "new revision running with the intended settings"
+                                + (plan.isEmpty() ? "" : " (read back from the pods)")
+                                + "; health endpoint round trip from the autopilot " + latency + " ms",
+                                Map.of("healthRoundTripMs", latency, "replicas", want, "checked", plan));
                         return null;
                     }
                     last = mismatch;
@@ -425,16 +457,49 @@ public class Autopilot {
     }
 
     /** Confirms the running pods actually carry the change (e.g. landed on the target node). */
-    private String readBack(List<Change> plan) {
-        for (Change ch : plan) {
-            if ("node".equals(ch.kind())) {
-                WorkloadObserver.Observation obs = observer.observe();
-                if (!obs.nodes().equals(List.of(ch.to()))) {
-                    return "pods run on " + obs.nodes() + ", expected " + ch.to();
+    private String readBack(String id, List<Change> plan) {
+        if (plan.isEmpty()) {
+            return null;
+        }
+        // Only pods created from this adaptation's revision count.
+        List<io.fabric8.kubernetes.api.model.Pod> pods = observer.runningPods(observer.deployment()).stream()
+                .filter(p -> p.getMetadata().getAnnotations() != null
+                        && id.equals(p.getMetadata().getAnnotations().get(ADAPTATION_ANNOTATION)))
+                .filter(p -> p.getStatus().getConditions() != null && p.getStatus().getConditions().stream()
+                        .anyMatch(c -> "Ready".equals(c.getType()) && "True".equals(c.getStatus())))
+                .toList();
+        if (pods.isEmpty()) {
+            return "no ready pod from this adaptation's revision yet";
+        }
+        for (io.fabric8.kubernetes.api.model.Pod pod : pods) {
+            Container c = pod.getSpec().getContainers().stream()
+                    .filter(x -> props.container().equals(x.getName())).findFirst()
+                    .orElse(pod.getSpec().getContainers().get(0));
+            for (Change ch : plan) {
+                String mismatch = switch (ch.kind()) {
+                    case "node" -> ch.to().equals(pod.getSpec().getNodeName()) ? null
+                            : "pod " + pod.getMetadata().getName() + " runs on " + pod.getSpec().getNodeName() + ", expected " + ch.to();
+                    case "cpu-limit" -> sameQuantity(c, true, "cpu", ch.to());
+                    case "memory-limit" -> sameQuantity(c, true, "memory", ch.to());
+                    case "memory-request" -> sameQuantity(c, false, "memory", ch.to());
+                    default -> null;
+                };
+                if (mismatch != null) {
+                    return mismatch;
                 }
             }
         }
         return null;
+    }
+
+    private static String sameQuantity(Container c, boolean limit, String resource, String expected) {
+        Map<String, Quantity> m = c.getResources() == null ? null
+                : (limit ? c.getResources().getLimits() : c.getResources().getRequests());
+        Quantity q = m == null ? null : m.get(resource);
+        if (q != null && Quantity.getAmountInBytes(q).compareTo(Quantity.getAmountInBytes(new Quantity(expected))) == 0) {
+            return null;
+        }
+        return "running pod has " + resource + (limit ? " limit " : " request ") + q + ", expected " + expected;
     }
 
     // ---------------------------------------------------------------- helpers
@@ -484,7 +549,8 @@ public class Autopilot {
         m.put("memoryLimit", obs.memoryLimitBytes() > 0 ? Quantities.toBinaryString(obs.memoryLimitBytes()) : "unset");
         m.put("cpuUsagePct", round(obs.cpuUsagePct()));
         m.put("memoryUsagePct", round(obs.memoryUsagePct()));
-        m.put("healthLatencyMs", obs.healthLatencyMs());
+        // -1 means "no answer", reported as unknown rather than as a number.
+        m.put("healthLatencyMs", obs.healthLatencyMs() >= 0 ? obs.healthLatencyMs() : null);
         if (rec != null) {
             m.put("recommendation", rec);
         }
@@ -494,11 +560,28 @@ public class Autopilot {
         return m;
     }
 
+    /** Why telemetry is insufficient to act on, or null when it is complete enough. */
+    static String missingTelemetry(WorkloadObserver.Observation obs) {
+        if (obs.nodes().isEmpty()) {
+            return "no running pod";
+        }
+        if (obs.healthLatencyMs() < 0) {
+            return "health URL not answering";
+        }
+        if (Double.isNaN(obs.cpuLimitCores()) || obs.memoryLimitBytes() <= 0) {
+            return "resource limits unreadable";
+        }
+        return null;
+    }
+
     private Map<String, Object> statusOf(WorkloadObserver.Observation obs, AdaptationRecommendation rec,
-                                         RuntimePolicyView policy, List<Change> plan) {
+                                         RuntimePolicyView policy, List<Change> plan, String state, String note) {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("at", Instant.now().toString());
-        m.put("state", plan.isEmpty() ? "compliant" : "adapting");
+        m.put("state", state);
+        if (note != null) {
+            m.put("note", note);
+        }
         m.put("dryRun", props.dryRun());
         m.put("observation", observationData(obs, rec, null));
         m.put("policy", policy);
