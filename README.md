@@ -20,6 +20,9 @@ app:
 Everything below was run on the challenge's own 3-node kind cluster
 (`make setup`), and every adaptation leaves an evidence trail you can inspect.
 
+
+![How GreenCharge Autopilot fits into the ENACT cluster (hand-drawn overview)](docs/images/architecture.png)
+
 ---
 
 ## Results on the live cluster
@@ -35,6 +38,23 @@ Recorded on 7 October 2026; raw records in [docs/evidence/](docs/evidence/) (`ru
 | 4 | **A node leaves `eu-west`** (worker2 relabelled `us-east`) | The operator re-decides to `enact-dev-worker` and records why worker2 is now rejected; the autopilot moves GreenCharge, rollout verified, health check 17 ms. When worker2 returns to `eu-west`, the operator keeps its choice (observed for 40 s, two reconcile periods), with no flapping | **adapted and verified** in 105 s |
 | 5 | **Policy restricted to the edge role** (`nodeSelector: enact.eu/role: edge`, as the brief places GreenCharge on `enact-dev-worker`) | The operator re-decides to `enact-dev-worker`; the autopilot moves GreenCharge there and restores the 1-core minimum that the Helm upgrade had reset; health check 19 ms | **adapted and verified** in 97 s |
 | 6 | **Telemetry disappears** (GreenCharge scaled to zero) | Status becomes *Telemetry unavailable* ("health URL not answering", then "no running pod"); the autopilot makes no change while it lasts (Deployment generation moved only by the scale command). When the app returns, telemetry is restored and recorded; the first slow responses (67 ms against the 50 ms target) are shown as *Deviating*, not *Compliant*, until they settle | **no unsafe action**; honest state throughout |
+
+
+### The operations console
+
+The autopilot serves a console (`make autopilot-ui`, then
+<http://localhost:8090/autopilot.html>) with the workload's state, ENACT's
+decision and every adaptation step by step. Below, a failed adaptation (64Gi of
+memory, more than any node has) is detected and rolled back; the telemetry loss
+and recovery from scenario 6 are recorded as notices.
+
+![Operations console, light theme, with a rolled-back adaptation expanded](docs/images/console-light.png)
+
+<details><summary>Dark theme</summary>
+
+![Operations console, dark theme, showing an honest "Deviating" state while a 61 ms response exceeds the 50 ms target](docs/images/console-dark.png)
+
+</details>
 
 The evidence timeline for one adaptation, as the autopilot recorded it:
 

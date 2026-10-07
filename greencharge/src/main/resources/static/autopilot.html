@@ -278,6 +278,10 @@ function paintThemeBtn() {
   $("themeBtn").innerHTML = (dark ? SUN : MOON) + (dark ? "Light" : "Dark");
 }
 try { const t = localStorage.getItem("gc-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+// ?theme=dark|light and ?open=latest, for links and screenshots.
+const params = new URLSearchParams(location.search);
+if (params.get("theme") === "dark" || params.get("theme") === "light") document.documentElement.dataset.theme = params.get("theme");
+let openLatest = params.get("open") === "latest";
 $("themeBtn").onclick = () => {
   const next = currentTheme() === "dark" ? "light" : "dark";
   document.documentElement.dataset.theme = next;
@@ -296,6 +300,7 @@ const RESULT = {
   adapted: ["t-ok", "Adapted"], rolled_back: ["t-warn", "Rolled back"], rejected: ["t-bad", "Rejected"],
   not_applied: ["t-bad", "Not applied"], failed: ["t-bad", "Failed"], superseded: ["t-neutral", "Superseded"],
   deferred: ["t-neutral", "Deferred"], dry_run: ["t-info", "Dry run"], running: ["t-info", "In progress"],
+  notice: ["t-neutral", "Notice"],
 };
 const tag = (r) => { const [c, l] = RESULT[r] || ["t-neutral", r]; return `<span class="tag ${c}">${esc(l)}</span>`; };
 const open = new Set();
@@ -366,13 +371,16 @@ function group(entries) {
   return [...g.entries()].map(([id, es]) => {
     const out = es.find((e) => e.phase === "OUTCOME");
     const decide = es.find((e) => e.phase === "DECIDE");
-    return { id, es, result: out && out.data ? out.data.result : "running",
+    // A single record without an outcome is a notice (e.g. telemetry lost or restored), not an unfinished adaptation.
+    const result = out && out.data ? out.data.result : es.length === 1 ? "notice" : "running";
+    return { id, es, result,
       start: es[0].at, end: (out || es[es.length - 1]).at, change: decide ? decide.message : es[0].message };
   }).reverse();
 }
 
 function renderHistory(entries) {
   const rows = group(entries);
+  if (openLatest && rows.length) { open.add(rows[0].id); openLatest = false; }
   $("histNote").textContent = rows.length + " adaptation" + (rows.length === 1 ? "" : "s");
   if (!rows.length) { $("hist").innerHTML = '<tr><td colspan="6" class="empty">No adaptations yet. The workload has been compliant since the autopilot started.</td></tr>'; return; }
   $("hist").innerHTML = rows.map((r) => {
@@ -387,12 +395,12 @@ function renderHistory(entries) {
         <td class="muted" style="white-space:nowrap">${fmtDate(r.start)}</td>
         <td>${esc(r.change)}</td>
         <td>${tag(r.result)}</td>
-        <td class="muted" style="white-space:nowrap">${r.result === "running" ? "-" : dur(r.start, r.end)}</td></tr>
+        <td class="muted" style="white-space:nowrap">${r.result === "running" || r.result === "notice" ? "-" : dur(r.start, r.end)}</td></tr>
       ${isOpen ? `<tr class="detail"><td colspan="6"><ol class="steps">${steps}</ol></td></tr>` : ""}`;
   }).join("");
 
   // Control loop: highlight the stages the latest adaptation went through.
-  const latest = rows[0];
+  const latest = rows.find((r) => r.result !== "notice") || rows[0];
   const seen = new Set(latest.es.map((e) => e.phase));
   const failed = latest.result !== "adapted" && latest.result !== "running";
   document.querySelectorAll("#loop .stage").forEach((el) => {

@@ -117,8 +117,8 @@ test:
 
 image:
 	set -e
-	docker build -t greencharge:1.6 greencharge
-	kind load docker-image greencharge:1.6 --name enact-dev
+	docker build -t greencharge:1.7 greencharge
+	kind load docker-image greencharge:1.7 --name enact-dev
 
 # Build the ENACT policy operator from upstream plus our fix, deploy it, and
 # give it the TDCME token it needs to read metrics.

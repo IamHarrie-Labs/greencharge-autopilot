@@ -7,7 +7,7 @@ image:
   # Built locally and loaded into kind: `make image` (see the root README).
   repository: greencharge
   pullPolicy: IfNotPresent
-  tag: "1.6"
+  tag: "1.7"
 
 imagePullSecrets: []
 nameOverride: ""

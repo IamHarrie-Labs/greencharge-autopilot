@@ -100,7 +100,7 @@ public final class SdkWorkflow {
                 .name("greencharge")
                 .namespace("enact")
                 .replicas(1)
-                .image(ImageSpec.builder().repository("greencharge").tag("1.6")
+                .image(ImageSpec.builder().repository("greencharge").tag("1.7")
                         .pullPolicy(ImagePullPolicy.IF_NOT_PRESENT).build())
                 .ports(List.of(ContainerPort.builder().name("http").containerPort(8080)
                         .protocol(ContainerPort.Protocol.TCP).build()))
