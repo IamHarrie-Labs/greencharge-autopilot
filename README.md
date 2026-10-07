@@ -292,8 +292,10 @@ on the live cluster.
 
 ## Slides and video
 
-The pitch deck is [docs/submission/GreenCharge-Autopilot-slides.pptx](docs/submission/GreenCharge-Autopilot-slides.pptx),
-with image copies of each slide in [docs/submission/slides/](docs/submission/slides/).
+The pitch deck is [docs/submission/GreenCharge-Autopilot-slides.pptx](docs/submission/GreenCharge-Autopilot-slides.pptx).
+It follows the organisers' template (project, GitHub repo, summary, highlights) and uses
+Hanken Grotesk, a free Google font. The slide images shown on TAIKAI are in
+[docs/submission/slides/](docs/submission/slides/).
 A 52 second overview video is at
 [docs/submission/GreenCharge-Autopilot-demo.mp4](docs/submission/GreenCharge-Autopilot-demo.mp4).
 
