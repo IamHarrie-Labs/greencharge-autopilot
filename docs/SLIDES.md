@@ -33,4 +33,4 @@ We closed the loop:
 - Node leaves `eu-west` → operator re-decides, app moves, **no flapping** after
 - Running it for real found 3 bugs in our own design (rollback that clobbered
   Helm, wrong rollout test, rejected patch as HTTP 500); all fixed and tested
-- 12 Java + 4 Go tests; Apache-2.0
+- 13 Java + 4 Go tests; Apache-2.0
