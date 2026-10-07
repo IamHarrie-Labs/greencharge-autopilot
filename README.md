@@ -2,7 +2,7 @@
 
 # GreenCharge Autopilot
 
-**Veles Hack 2026 · Challenge 3 (ENACT): Kubernetes Dynamic Adaptation**
+**Veles Hack 2026 · Challenge 3 (ENACT): Kubernetes Dynamic Adaptation · Team Harrie**
 
 ENACT can already say what a workload *should* look like: the Application
 Controller recommends `scale_up` or `scale_down`, and the policy operator picks

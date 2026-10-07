@@ -7,7 +7,7 @@ ENACT policies that actually change the running app, and prove it.
 
 Challenge 3 (ENACT): Kubernetes Dynamic Adaptation
 GitHub: `<repo URL>`
-Team: `<names>`
+Team: Harrie
 
 ## Slide 2: Summary
 
