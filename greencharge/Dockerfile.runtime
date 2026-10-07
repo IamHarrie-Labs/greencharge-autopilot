@@ -1,0 +1,9 @@
+# Runtime-only image around a jar built on the host (`mvn package`).
+# Smaller and faster than the multi-stage Dockerfile, which builds inside Docker.
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+COPY target/greencharge.jar app.jar
+EXPOSE 8080
+ENV APP_OPEN_BROWSER=false
+USER 10001
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]

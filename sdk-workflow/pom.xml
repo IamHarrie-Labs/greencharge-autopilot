@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Runs the ENACT SDK workflow from the command line, using the same ENACT APM
+  libraries (Maven Central, eu.enact-horizon) that the ENACT SDK's Eclipse
+  modules wrap: Application Packaging, Application Policies and Dataspaces.
+  SPDX-License-Identifier: Apache-2.0
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>eu.enact.greencharge</groupId>
+    <artifactId>sdk-workflow</artifactId>
+    <version>1.0.0</version>
+    <name>GreenCharge ENACT SDK workflow</name>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Same versions as ENACT SDK 1.5.0 (software-development-kit/pom.xml) -->
+        <apm.app-packaging.version>1.0.0</apm.app-packaging.version>
+        <apm.application-policy-model.version>0.1.0</apm.application-policy-model.version>
+        <apm.edc-client.version>1.2.0</apm.edc-client.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>eu.enact-horizon</groupId>
+            <artifactId>app-packaging</artifactId>
+            <version>${apm.app-packaging.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.enact-horizon</groupId>
+            <artifactId>application-policy-model</artifactId>
+            <version>${apm.application-policy-model.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.enact-horizon</groupId>
+            <artifactId>edc-client</artifactId>
+            <version>${apm.edc-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.13</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <mainClass>eu.enact.greencharge.sdk.SdkWorkflow</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

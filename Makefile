@@ -96,3 +96,77 @@ clean:
 	helm repo remove enact-applpm
 	helm repo remove cilium
 	docker system prune -f
+# ---------------------------------------------------------------------------
+# GreenCharge Autopilot (Veles Hack 2026 entry). Run after `make setup`.
+# ---------------------------------------------------------------------------
+APPLPM_UPSTREAM := https://gitlab.eclipse.org/eclipse-research-labs/enact-project/application-policy-model.git
+APPLPM_COMMIT   := $(shell cat operator-fix/UPSTREAM_COMMIT 2>/dev/null)
+NS              := enact
+
+.PHONY: image operator-fix deploy autopilot-ui app-ui evidence test labels
+
+# Re-apply the node labels that `make setup` sets through the APPLPM API, using
+# kubectl, in case APPLPM was not ready when setup reached that step.
+labels:
+	set -e
+	kubectl label node enact-dev-worker  enact.eu/green-ratio=0.85 enact.eu/role=edge  enact.eu/region=eu-west enact.eu/zone=eu-west-1a --overwrite
+	kubectl label node enact-dev-worker2 enact.eu/green-ratio=0.9  enact.eu/role=cloud enact.eu/region=eu-west enact.eu/zone=eu-west-2a --overwrite
+
+test:
+	cd greencharge && mvn -B test
+
+image:
+	set -e
+	docker build -t greencharge:1.5 greencharge
+	kind load docker-image greencharge:1.5 --name enact-dev
+
+# Build the ENACT policy operator from upstream plus our fix, deploy it, and
+# give it the TDCME token it needs to read metrics.
+operator-fix:
+	set -e
+	rm -rf .build/applpm && git clone -q $(APPLPM_UPSTREAM) .build/applpm
+	cd .build/applpm && git checkout -q $(APPLPM_COMMIT) && git apply ../../operator-fix/applpm-metrics-auth-and-placement.patch
+	docker build -t applpm:auth-fix .build/applpm
+	kind load docker-image applpm:auth-fix --name enact-dev
+	kubectl -n $(NS) set image deploy/applpm-controller-manager manager=applpm:auth-fix
+	kubectl -n $(NS) patch deploy applpm-controller-manager --type=json -p='[{"op":"replace","path":"/spec/template/spec/containers/0/imagePullPolicy","value":"IfNotPresent"}]'
+	kubectl -n $(NS) set env deploy/applpm-controller-manager METRICS_API_URL=http://monitor-api-service.$(NS).svc.cluster.local:80 CLUSTER_NAME=dev
+	kubectl -n $(NS) set env deploy/applpm-controller-manager --from=secret/admin-token-secret --prefix=METRICS_API_ --keys=token
+	kubectl -n $(NS) rollout status deploy/applpm-controller-manager --timeout=180s
+
+deploy:
+	set -e
+	helm upgrade --install greencharge greencharge/chart -n $(NS)
+	kubectl -n $(NS) rollout status deploy/greencharge-autopilot --timeout=300s
+
+# The evidence timeline: http://localhost:8090/autopilot.html
+autopilot-ui:
+	kubectl -n $(NS) port-forward svc/greencharge-autopilot 8090:8080
+
+# GreenCharge itself: http://localhost:8080
+app-ui:
+	kubectl -n $(NS) port-forward svc/greencharge 8080:8080
+
+# Every evidence record the autopilot has written, as JSON lines.
+evidence:
+	kubectl -n $(NS) logs deploy/greencharge-autopilot | grep -o 'EVIDENCE .*' | cut -c10-
+
+# ENACT SDK workflow without the Eclipse UI: the same ENACT APM libraries the
+# SDK's Application Packaging, Application Policies and Dataspaces modules use.
+.PHONY: sdk-package sdk-validate-policy sdk-dataspace sdk-deploy
+sdk-package:
+	cd sdk-workflow && mvn -B -q exec:java -Dexec.args="package ../greencharge/enact-sdk-generated"
+
+sdk-validate-policy:
+	set -e
+	mkdir -p greencharge/enact-sdk-generated/policy
+	helm template greencharge greencharge/chart -n $(NS) --show-only templates/runtimepolicy.yaml > greencharge/enact-sdk-generated/policy/greencharge-policy.yaml
+	cd sdk-workflow && mvn -B -q exec:java -Dexec.args="validate-policy ../greencharge/enact-sdk-generated/policy/greencharge-policy.yaml"
+
+sdk-dataspace:
+	cd sdk-workflow && mvn -B -q exec:java -Dexec.args="dataspace ../docs/evidence/dataspace" | tee ../docs/evidence/dataspace/5-sdk-edc-client-run.txt
+
+# Deploy GreenCharge from the SDK-generated chart (the autopilot chart still
+# provides the RuntimePolicy and the autopilot: helm install with autopilot only).
+sdk-deploy:
+	helm template greencharge greencharge/enact-sdk-generated/helm/greencharge -n $(NS) | kubectl apply -n $(NS) -f -

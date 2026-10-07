@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 72" role="img" aria-label="GreenCharge Autopilot">
+  <g transform="translate(4 4)">
+    <path d="M32 6a26 26 0 1 1-22.5 13" fill="none" stroke="#0E6B4F" stroke-width="6" stroke-linecap="round"/>
+    <path d="M3.5 14.5 L13.5 22.5 L15.8 10.2 Z" fill="#0E6B4F"/>
+    <path d="M35.5 15 L22 35h9l-3 14 14.5-21h-9.2l2.2-13z" fill="#0E6B4F"/>
+  </g>
+  <text x="84" y="36" font-family="'IBM Plex Sans','Segoe UI',Helvetica,Arial,sans-serif" font-size="27" font-weight="600" fill="#161616">GreenCharge Autopilot</text>
+  <text x="85" y="58" font-family="'IBM Plex Sans','Segoe UI',Helvetica,Arial,sans-serif" font-size="13.5" fill="#525252" letter-spacing=".4">ENACT runtime adaptation for Kubernetes</text>
+</svg>

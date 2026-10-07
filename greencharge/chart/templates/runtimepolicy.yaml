@@ -1,0 +1,35 @@
+{{- if .Values.runtimePolicy.enabled }}
+# ENACT RuntimePolicy (Task 4): Soft green >= 0.6, Hard region eu-west,
+# node availability >= 0.9. The ENACT operator writes its placement decision to
+# status.chosenNode; the autopilot applies it to the running workload.
+apiVersion: enact.eu/v1alpha1
+kind: RuntimePolicy
+metadata:
+  name: {{ .Values.runtimePolicy.name }}
+  labels:
+    {{- include "greencharge.labels" . | nindent 4 }}
+spec:
+  # The brief places GreenCharge on the green edge node (enact-dev-worker).
+  nodeSelector:
+    enact.eu/role: edge
+  appNamespace: {{ .Release.Namespace }}
+  appLabels:
+    {{- include "greencharge.selectorLabels" . | nindent 4 }}
+  cpu:
+    min: 1
+    max: 4
+  memory:
+    min: 2048
+  availability:
+    requireReady: true
+    nodeAvailability: 0.9
+  location:
+    mode: Hard
+    regions: ["eu-west"]
+  greenEnergy:
+    mode: Soft
+    minRatio: 0.6
+  clusterLatency:
+    mode: Soft
+    maxAvgMs: 50
+{{- end }}

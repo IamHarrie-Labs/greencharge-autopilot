@@ -1,0 +1,76 @@
+apiVersion: enact.eu/v1alpha1
+kind: RuntimePolicy
+metadata:
+  annotations:
+    meta.helm.sh/release-name: greencharge
+    meta.helm.sh/release-namespace: enact
+  creationTimestamp: "2026-10-07T08:16:41Z"
+  generation: 1
+  labels:
+    app: greencharge
+    app.kubernetes.io/instance: greencharge
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: greencharge
+    app.kubernetes.io/version: "1.0"
+    helm.sh/chart: greencharge-0.1.0
+  name: greencharge-policy
+  namespace: enact
+  resourceVersion: "21465"
+  uid: e41a906d-2da7-4e9a-bf2e-c70dfcd54f50
+spec:
+  appLabels:
+    app: greencharge
+    app.kubernetes.io/instance: greencharge
+    app.kubernetes.io/name: greencharge
+  appNamespace: enact
+  availability:
+    nodeAvailability: 0.9
+    requireReady: true
+  clusterLatency:
+    maxAvgMs: 50
+    mode: Soft
+  cpu:
+    max: 4
+    min: 1
+  greenEnergy:
+    minRatio: 0.6
+    mode: Soft
+  location:
+    mode: Hard
+    regions:
+    - eu-west
+  memory:
+    min: 2048
+status:
+  candidates:
+  - availability: 1
+    greenRatio: 0.85
+    name: enact-dev-worker
+    ready: true
+    region: eu-west
+    score: 0
+    zone: eu-west-1a
+  - availability: 1
+    greenRatio: 0.9
+    name: enact-dev-worker2
+    ready: true
+    region: eu-west
+    score: 0
+    zone: eu-west-2a
+  chosenNode: enact-dev-worker2
+  cluster:
+    availability: 0.9983115746899889
+    avgLatencyMs: 0
+  conditions:
+  - lastTransitionTime: "2026-10-07T09:19:00Z"
+    message: ""
+    reason: DecisionReady
+    status: "True"
+    type: Available
+  observedGeneration: 1
+  reason: selected based on vector distance score (0.0000)
+  rejectedNodes:
+  - name: enact-dev-control-plane
+    reason: node region "us-east" not in allowed regions
+  - name: enact-dev-worker
+    reason: lost in ranking (score 0.0000)

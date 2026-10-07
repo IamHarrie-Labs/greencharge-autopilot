@@ -1,0 +1,28 @@
+# GreenCharge - Application Policy Model (ENACT Task 2)
+#
+# Read by the ENACT Application Controller (PolicyModelConfig) from the
+# classpath. The autopilot evaluates the running workload against it every
+# pass and acts on the scale_up / scale_down recommendations.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+application:
+  performance:
+    cpu:
+      family: "x86_64"
+      cores:
+        min: 1
+        max: 4
+    ram:
+      capacity: "2Gi"
+      timings: "DDR4"
+  dataStorage:
+    locations:
+      - "eu-west"
+  network:
+    capacity:
+      bandwidth: "100Mbps"
+      latency: "50ms"
+  energy:
+    consumption: "100W"
+    greenEnergyMix: 0.60

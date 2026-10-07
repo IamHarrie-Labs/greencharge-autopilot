@@ -1,0 +1,15 @@
+12:49:07 detect    probing https://sovity2-api.sedimark.work/api/management
+SLF4J(W): Class path contains multiple SLF4J providers.
+SLF4J(W): Found provider [ch.qos.logback.classic.spi.LogbackServiceProvider@269ff4d9]
+SLF4J(W): Found provider [org.slf4j.simple.SimpleServiceProvider@121cc5ce]
+SLF4J(W): See https://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J(I): Actual provider is of type [ch.qos.logback.classic.spi.LogbackServiceProvider@269ff4d9]
+12:49:19 detect    reachable=true authorized=true api=V2 notes=[No EDR endpoint: consumer-pull transfers cannot be completed through this connector; use push sinks.]
+12:49:51 catalog   1 offer(s); grid-carbon-intensity from connector-provider, offer Z3JpZC1jYXJib24taW50ZW5zaXR5LWRhdGEtb2ZmZXI=:Z3JpZC1jYXJib24taW50ZW5zaXR5:MDFhMTE2NjktYmU2Mi03ZDcxLWExMmEtMTdmY2JiNzI3OTAx
+12:49:52 negotiate started 01a11669-c18b-7db4-9142-ecb05f55ea3f
+12:53:00 negotiate state FINALIZED
+12:53:00 negotiate agreement Z3JpZC1jYXJib24taW50ZW5zaXR5LWRhdGEtb2ZmZXI=:Z3JpZC1jYXJib24taW50ZW5zaXR5:MDFhMTE2NjktYzdlZi03YjMxLTg2NGYtOTA5ZjYwYzgwNjNj
+12:53:03 transfer  started 01a1166c-abc5-7642-8fcb-cb6b2cb7f5cb -> https://relay.sedimark.work/inbox/39c5542fc17f1aa4644e6cb53c3549b1
+12:56:14 transfer  state COMPLETED
+12:56:18 download  relay answered HTTP 400
+12:56:18 download  body: Client sent an HTTP request to an HTTPS server.

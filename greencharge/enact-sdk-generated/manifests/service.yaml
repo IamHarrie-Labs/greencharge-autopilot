@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: greencharge
+  namespace: enact
+  labels:
+    app.kubernetes.io/name: greencharge
+    app.kubernetes.io/instance: greencharge
+    app.kubernetes.io/version: 1.5
+    app.kubernetes.io/component: service
+    app.kubernetes.io/managed-by: enact-apm
+    app: greencharge
+    app.kubernetes.io/part-of: greencharge-autopilot
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: greencharge
+    app.kubernetes.io/instance: greencharge
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+    nodePort: 32585

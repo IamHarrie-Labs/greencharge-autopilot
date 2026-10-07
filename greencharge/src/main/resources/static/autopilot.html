@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GreenCharge Autopilot · Console</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 6a26 26 0 1 1-22.5 13' fill='none' stroke='%230E6B4F' stroke-width='6' stroke-linecap='round'/%3E%3Cpath d='M3.5 14.5 L13.5 22.5 L15.8 10.2 Z' fill='%230E6B4F'/%3E%3Cpath d='M35.5 15 L22 35h9l-3 14 14.5-21h-9.2l2.2-13z' fill='%230E6B4F'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Ash: warm grey ground, slightly lighter surfaces */
+    --bg: #d9dbd6; --layer: #eef0ec; --layer-2: #e4e6e1; --border: #c4c8c1; --border-strong: #a9aea6;
+    --text: #1c1f1d; --text-2: #4a4f4b; --text-3: #656b66;
+    --brand: #0e6b4f; --brand-weak: #d5e8df; --header: #2b2e2c; --header-text: #eef0ec;
+    --ok: #198038; --ok-bg: #defbe6; --warn: #8e6a00; --warn-bg: #fcf4d6; --bad: #da1e28; --bad-bg: #fff1f1;
+    --info: #0f62fe; --info-bg: #edf5ff; --neutral-bg: #e8e8e8;
+    --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+    --sans: "Hanken Grotesk", "Helvetica Neue", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1b1d1c; --layer: #252826; --layer-2: #2c2f2d; --border: #3a3e3b; --border-strong: #545954;
+      --text: #ecefeb; --text-2: #bfc5be; --text-3: #9aa199;
+      --brand: #42be8f; --brand-weak: #123a2d; --header: #111312; --header-text: #ecefeb;
+      --ok: #42be65; --ok-bg: #0e3a1d; --warn: #f1c21b; --warn-bg: #3d3005; --bad: #ff8389; --bad-bg: #4c1015;
+      --info: #78a9ff; --info-bg: #0d2a5a; --neutral-bg: #3a3e3b;
+    }
+  }
+  :root[data-theme="dark"] {
+      --bg: #1b1d1c; --layer: #252826; --layer-2: #2c2f2d; --border: #3a3e3b; --border-strong: #545954;
+      --text: #ecefeb; --text-2: #bfc5be; --text-3: #9aa199;
+      --brand: #42be8f; --brand-weak: #123a2d; --header: #111312; --header-text: #ecefeb;
+      --ok: #42be65; --ok-bg: #0e3a1d; --warn: #f1c21b; --warn-bg: #3d3005; --bad: #ff8389; --bad-bg: #4c1015;
+      --info: #78a9ff; --info-bg: #0d2a5a; --neutral-bg: #3a3e3b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 14.5px/1.45 var(--sans); letter-spacing: .005em; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: var(--mono); font-size: 12.5px; }
+  .muted { color: var(--text-2); }
+  .faint { color: var(--text-3); }
+
+  /* Header */
+  header.bar { position: sticky; top: 0; z-index: 5; background: var(--header); color: var(--header-text);
+    display: flex; align-items: center; gap: 16px; height: 48px; padding: 0 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; white-space: nowrap; }
+  .brand svg { width: 22px; height: 22px; }
+  .brand .sub { font-weight: 400; color: #a8a8a8; font-size: 13px; }
+  .bar .ctx { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+  .chip { font: 12px var(--mono); padding: 2px 8px; border: 1px solid #393939; color: #c6c6c6; border-radius: 2px; white-space: nowrap; }
+  .chip b { color: #f4f4f4; font-weight: 500; }
+  .theme-btn { background: transparent; border: 1px solid #4a4f4b; color: #e4e6e1; height: 28px; padding: 0 10px; font: 500 12px var(--sans); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .theme-btn:hover { border-color: #a9aea6; }
+  .theme-btn svg { width: 14px; height: 14px; }
+  .live { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #c6c6c6; white-space: nowrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #42be65; box-shadow: 0 0 0 3px rgba(66,190,101,.2); }
+  .dot.stale { background: #da1e28; box-shadow: 0 0 0 3px rgba(218,30,40,.2); }
+
+  main { max-width: 1440px; margin: 0 auto; padding: 20px 16px 40px; }
+  .pagehead { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .pagehead h1 { margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
+  .pagehead p { margin: 4px 0 0; color: var(--text-2); max-width: 760px; }
+
+  /* KPI tiles */
+  .kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 16px; }
+  .kpi { background: var(--layer); padding: 14px 16px; min-width: 0; }
+  .kpi .label { font-size: 12px; color: var(--text-2); letter-spacing: .02em; }
+  .kpi .value { font-size: 26px; font-weight: 500; letter-spacing: -.01em; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+  .kpi .value.small { font-size: 18px; margin-top: 8px; }
+  .kpi .foot { font-size: 12px; color: var(--text-3); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  /* Tags */
+  .tag { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 11px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .t-ok { background: var(--ok-bg); color: var(--ok); }
+  .t-warn { background: var(--warn-bg); color: var(--warn); }
+  .t-bad { background: var(--bad-bg); color: var(--bad); }
+  .t-info { background: var(--info-bg); color: var(--info); }
+  .t-neutral { background: var(--neutral-bg); color: var(--text-2); }
+
+  /* Layout */
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; align-items: start; }
+  @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
+  .tile { background: var(--layer); border: 1px solid var(--border); }
+  .tile + .tile { margin-top: 16px; }
+  .tile-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .tile-h h2 { margin: 0; font-size: 14px; font-weight: 600; }
+  .tile-h .note { font-size: 12px; color: var(--text-3); }
+  .tile-b { padding: 12px 16px 16px; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 12px; font-weight: 600; color: var(--text-2); background: var(--layer-2); }
+  tbody tr.row { cursor: pointer; }
+  tbody tr.row:hover td { background: var(--layer-2); }
+  tbody tr.row td:first-child { width: 28px; color: var(--text-3); }
+  tr.detail td { background: var(--layer-2); padding: 0; }
+  .chev { display: inline-block; transition: transform .15s; }
+  tr.open .chev { transform: rotate(90deg); }
+  .table-wrap { overflow-x: auto; }
+  .empty { padding: 24px 16px; color: var(--text-3); }
+
+  /* Step list */
+  .steps { list-style: none; margin: 0; padding: 12px 16px 16px 44px; position: relative; }
+  .steps li { display: grid; grid-template-columns: 76px 92px minmax(0, 1fr); gap: 10px; padding: 6px 0; position: relative; }
+  .steps li::before { content: ""; position: absolute; left: -22px; top: 12px; width: 9px; height: 9px; border-radius: 50%; background: var(--border-strong); }
+  .steps li::after { content: ""; position: absolute; left: -18px; top: 23px; bottom: -8px; width: 1px; background: var(--border); }
+  .steps li:last-child::after { display: none; }
+  .steps li.p-OUTCOME::before { background: var(--text); }
+  .steps li.p-APPLY::before { background: var(--warn); }
+  .steps li.p-VERIFY::before { background: var(--ok); }
+  .steps li.p-ROLLBACK::before { background: var(--bad); }
+  .steps li.p-DETECT::before, .steps li.p-DECIDE::before { background: var(--info); }
+  .phase { font: 500 11.5px var(--mono); letter-spacing: .04em; color: var(--text-2); padding-top: 1px; }
+  details summary { cursor: pointer; color: var(--info); font-size: 12px; margin-top: 2px; }
+  pre { margin: 6px 0 0; padding: 10px; background: var(--layer); border: 1px solid var(--border); overflow-x: auto; font: 12px/1.5 var(--mono); max-height: 320px; }
+  @media (max-width: 640px) { .steps li { grid-template-columns: 1fr; gap: 0; } }
+
+  /* Key-value */
+  dl.kv { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 8px 12px; margin: 0; }
+  dl.kv dt { color: var(--text-2); font-size: 13px; }
+  dl.kv dd { margin: 0; word-break: break-word; }
+  .section-label { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .06em; margin: 16px 0 8px; }
+  .section-label:first-child { margin-top: 0; }
+  .rules { list-style: none; margin: 0; padding: 0; }
+  .rules li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .rules li:last-child { border-bottom: 0; }
+  .ac { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 6px 10px; align-items: start; }
+
+  /* Control loop */
+  .loop { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+  .stage { border: 1px solid var(--border); padding: 8px 6px; text-align: center; font-size: 11.5px; color: var(--text-2); background: var(--layer-2); }
+  .stage b { display: block; font: 500 11px var(--mono); letter-spacing: .04em; color: var(--text); margin-bottom: 2px; }
+  .stage.on { border-color: var(--brand); background: var(--brand-weak); }
+  .stage.on.fail { border-color: var(--bad); background: var(--bad-bg); }
+
+  /* Buttons and inputs */
+  .actions { display: grid; gap: 10px; }
+  .btn { font: 500 14px var(--sans); height: 40px; padding: 0 16px; border: 1px solid transparent; cursor: pointer; text-align: left; display: flex; align-items: center; justify-content: space-between; }
+  .btn-primary { background: var(--brand); color: #fff; }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-secondary { background: var(--layer); color: var(--text); border-color: var(--border-strong); }
+  .btn-secondary:hover { background: var(--layer-2); }
+  .btn-danger { background: var(--layer); color: var(--bad); border-color: var(--bad); }
+  .btn-danger:hover { background: var(--bad-bg); }
+  .btn[disabled] { opacity: .5; cursor: progress; }
+  .inline { display: flex; gap: 8px; }
+  .inline input { flex: 1; min-width: 0; height: 40px; padding: 0 12px; border: 0; border-bottom: 1px solid var(--border-strong); background: var(--layer-2); color: var(--text); font: 13px var(--mono); }
+  .inline input:focus { outline: 2px solid var(--info); outline-offset: -2px; }
+  .hint { font-size: 12px; color: var(--text-3); margin-top: -4px; }
+  .toast { margin-top: 12px; padding: 10px 12px; border-left: 3px solid var(--info); background: var(--info-bg); font-size: 13px; display: none; }
+  .toast.show { display: block; }
+  .toast.ok { border-color: var(--ok); background: var(--ok-bg); }
+  .toast.bad { border-color: var(--bad); background: var(--bad-bg); }
+  .toast.warn { border-color: var(--warn); background: var(--warn-bg); }
+
+  footer { max-width: 1440px; margin: 0 auto; padding: 0 16px 32px; color: var(--text-3); font-size: 12px; }
+  footer code { font-family: var(--mono); }
+  @media (max-width: 760px) { .bar .ctx .chip:not(.keep) { display: none; } .brand .sub { display: none; } }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6a26 26 0 1 1-22.5 13" fill="none" stroke="#42be8f" stroke-width="6" stroke-linecap="round"/><path d="M3.5 14.5 L13.5 22.5 L15.8 10.2 Z" fill="#42be8f"/><path d="M35.5 15 L22 35h9l-3 14 14.5-21h-9.2l2.2-13z" fill="#42be8f"/></svg>
+    GreenCharge Autopilot <span class="sub">ENACT runtime adaptation</span>
+  </div>
+  <div class="ctx">
+    <span class="chip keep">cluster <b>enact-dev</b></span>
+    <span class="chip">namespace <b id="ns">enact</b></span>
+    <span class="chip">workload <b>deploy/greencharge</b></span>
+    <span class="chip">policy <b id="chipPolicy">-</b></span>
+  </div>
+  <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch colour theme"></button>
+  <div class="live" title="Data refreshes every 5 seconds"><span class="dot" id="liveDot"></span><span id="liveText">connecting</span></div>
+</header>
+
+<main>
+  <div class="pagehead">
+    <div>
+      <h1>Workload overview</h1>
+      <p>The autopilot evaluates GreenCharge against its ENACT Application Policy Model and RuntimePolicy every 20&nbsp;seconds, applies the adaptation ENACT recommends, verifies recovery, and rolls back if it fails.</p>
+    </div>
+    <span id="stateTag" class="tag t-neutral">loading</span>
+  </div>
+
+  <section class="kpis" aria-label="Key indicators">
+    <div class="kpi"><div class="label">Policy compliance</div><div class="value small" id="kCompliance">-</div><div class="foot" id="kComplianceFoot">-</div></div>
+    <div class="kpi"><div class="label">Placement</div><div class="value small mono" id="kNode">-</div><div class="foot" id="kNodeFoot">-</div></div>
+    <div class="kpi"><div class="label">CPU limit</div><div class="value" id="kCpu">-</div><div class="foot" id="kCpuFoot">-</div></div>
+    <div class="kpi"><div class="label">Memory limit</div><div class="value" id="kMem">-</div><div class="foot" id="kMemFoot">-</div></div>
+    <div class="kpi"><div class="label">Health check</div><div class="value" id="kHealth">-</div><div class="foot" id="kHealthFoot">-</div></div>
+  </section>
+
+  <div class="grid">
+    <div>
+      <section class="tile" aria-labelledby="hHist">
+        <div class="tile-h"><h2 id="hHist">Adaptation history</h2><span class="note" id="histNote">-</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th></th><th>Adaptation</th><th>Started</th><th>Change</th><th>Outcome</th><th>Duration</th></tr></thead>
+            <tbody id="hist"><tr><td colspan="6" class="empty">Loading&hellip;</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <aside>
+      <section class="tile" aria-labelledby="hDec">
+        <div class="tile-h"><h2 id="hDec">ENACT decision</h2><span class="note" id="decAt">-</span></div>
+        <div class="tile-b">
+          <div class="section-label">Policy operator (RuntimePolicy)</div>
+          <dl class="kv">
+            <dt>Chosen node</dt><dd class="mono" id="dChosen">-</dd>
+            <dt>Reason</dt><dd id="dReason">-</dd>
+            <dt>Hard rules</dt><dd id="dHard">-</dd>
+          </dl>
+          <ul class="rules" id="dRejected"></ul>
+          <div class="section-label">Application Controller (policy model)</div>
+          <div class="ac" id="dAc"></div>
+          <div class="section-label">Pending changes</div>
+          <div id="dPending" class="muted">None</div>
+        </div>
+      </section>
+
+      <section class="tile" aria-labelledby="hLoop">
+        <div class="tile-h"><h2 id="hLoop">Control loop</h2><span class="note" id="loopNote">last adaptation</span></div>
+        <div class="tile-b">
+          <div class="loop" id="loop">
+            <div class="stage" data-p="DETECT"><b>DETECT</b>live state</div>
+            <div class="stage" data-p="DECIDE"><b>DECIDE</b>ENACT</div>
+            <div class="stage" data-p="GUARD"><b>GUARD</b>Hard rules</div>
+            <div class="stage" data-p="APPLY"><b>APPLY</b>patch</div>
+            <div class="stage" data-p="VERIFY"><b>VERIFY</b>rollout</div>
+            <div class="stage" data-p="ROLLBACK"><b>ROLLBACK</b>if failed</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tile" aria-labelledby="hOps">
+        <div class="tile-h"><h2 id="hOps">Operations</h2><span class="note">audited in the history</span></div>
+        <div class="tile-b actions">
+          <button class="btn btn-primary" id="bRun">Run evaluation now <span aria-hidden="true">&rarr;</span></button>
+          <button class="btn btn-danger" id="bFail">Failure drill: unschedulable change <span aria-hidden="true">&rarr;</span></button>
+          <div class="hint">Applies 64Gi of memory, which no node has. Expect the verify step to time out and a rollback (about 2&nbsp;minutes).</div>
+          <div class="inline">
+            <input id="node" placeholder="node name, e.g. enact-dev-control-plane" aria-label="Target node">
+            <button class="btn btn-secondary" id="bMove">Request move</button>
+          </div>
+          <div class="hint">Moves are checked against the RuntimePolicy's Hard rules before anything changes.</div>
+          <div class="toast" id="toast" role="status"></div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</main>
+<footer>
+  Every step is also written to the autopilot's log (<code>make evidence</code>). API: <code>GET /autopilot/status</code>, <code>GET /autopilot/timeline</code>.
+  Built for Veles Hack 2026 &middot; Challenge 3 (ENACT) &middot; Apache-2.0
+</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+// Theme: follows the system until the viewer picks one; the choice is kept per browser.
+const SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+function currentTheme() {
+  const set = document.documentElement.dataset.theme;
+  if (set) return set;
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+function paintThemeBtn() {
+  const dark = currentTheme() === "dark";
+  $("themeBtn").innerHTML = (dark ? SUN : MOON) + (dark ? "Light" : "Dark");
+}
+try { const t = localStorage.getItem("gc-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+$("themeBtn").onclick = () => {
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem("gc-theme", next); } catch (e) {}
+  paintThemeBtn();
+};
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", paintThemeBtn);
+paintThemeBtn();
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtTime = (iso) => new Date(iso).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false});
+const fmtDate = (iso) => new Date(iso).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false});
+const ago = (iso) => { const s = Math.max(0, Math.round((Date.now() - new Date(iso)) / 1000)); return s < 60 ? s + " s ago" : s < 3600 ? Math.round(s / 60) + " min ago" : Math.round(s / 3600) + " h ago"; };
+const dur = (a, b) => { const s = Math.round((new Date(b) - new Date(a)) / 1000); return s < 60 ? s + " s" : Math.floor(s / 60) + " min " + (s % 60) + " s"; };
+
+const RESULT = {
+  adapted: ["t-ok", "Adapted"], rolled_back: ["t-warn", "Rolled back"], rejected: ["t-bad", "Rejected"],
+  not_applied: ["t-bad", "Not applied"], failed: ["t-bad", "Failed"], superseded: ["t-neutral", "Superseded"],
+  deferred: ["t-neutral", "Deferred"], dry_run: ["t-info", "Dry run"], running: ["t-info", "In progress"],
+};
+const tag = (r) => { const [c, l] = RESULT[r] || ["t-neutral", r]; return `<span class="tag ${c}">${esc(l)}</span>`; };
+const open = new Set();
+let lastOk = 0;
+
+function setLive(ok) {
+  if (ok) lastOk = Date.now();
+  const stale = Date.now() - lastOk > 15000;
+  $("liveDot").classList.toggle("stale", stale);
+  $("liveText").textContent = stale ? "disconnected" : "live";
+}
+
+function renderStatus(s) {
+  const o = s.observation || {}, p = s.policy || {}, rec = o.recommendation || {};
+  const compliant = s.state === "compliant";
+  $("stateTag").className = "tag " + (compliant ? "t-ok" : s.state === "error" ? "t-bad" : "t-warn");
+  $("stateTag").textContent = compliant ? "Compliant" : s.state === "error" ? "Error" : "Adapting";
+  $("chipPolicy").textContent = p.name || "-";
+
+  $("kCompliance").innerHTML = compliant ? '<span class="tag t-ok">Compliant</span>' : '<span class="tag t-warn">Deviating</span>';
+  $("kComplianceFoot").textContent = rec.compliant === undefined ? "-" : "Application Controller: " + (rec.compliant ? "compliant" : "not compliant");
+
+  const nodes = (o.nodes || []).join(", ") || "-";
+  $("kNode").textContent = nodes;
+  const onChosen = p.chosenNode && (o.nodes || []).length === 1 && o.nodes[0] === p.chosenNode;
+  $("kNodeFoot").textContent = p.chosenNode ? (onChosen ? "matches operator decision" : "operator chose " + p.chosenNode) : "no operator decision";
+
+  const c = rec.cpu || {}, m = rec.memory || {}, n = rec.network || {};
+  $("kCpu").textContent = o.cpuLimit === "1" ? "1 core" : (o.cpuLimit || "-");
+  $("kCpuFoot").textContent = c.minRequired !== undefined ? `policy ${c.minRequired}–${c.maxAllowed} cores` + (o.cpuUsagePct >= 0 ? ` · ${o.cpuUsagePct}% used` : "") : "-";
+  $("kMem").textContent = o.memoryLimit || "-";
+  $("kMemFoot").textContent = m.minRequired ? `policy ${m.minRequired}` + (o.memoryUsagePct >= 0 ? ` · ${o.memoryUsagePct}% used` : "") : "-";
+  $("kHealth").textContent = o.healthLatencyMs >= 0 ? o.healthLatencyMs + " ms" : "down";
+  $("kHealthFoot").textContent = `ready ${o.readyReplicas || "-"} · max ${n.maxAllowedLatencyMs ?? "-"} ms`;
+
+  $("decAt").textContent = "updated " + ago(s.at);
+  $("dChosen").textContent = p.chosenNode || "-";
+  $("dReason").textContent = p.reason || "-";
+  const hard = [];
+  (p.hardRegions || []).length && hard.push("region in " + p.hardRegions.join(", "));
+  (p.hardZones || []).length && hard.push("zone in " + p.hardZones.join(", "));
+  p.hardGreenMin != null && hard.push("green ratio ≥ " + p.hardGreenMin);
+  $("dHard").textContent = hard.join(" · ") || "none";
+  $("dRejected").innerHTML = (p.rejectedNodes || []).map((r) =>
+    `<li><span class="mono">${esc(r.name)}</span><span class="muted" style="text-align:right">${esc(r.reason)}</span></li>`).join("");
+
+  const acRow = (label, x) => x && x.action ? `<span class="faint">${label}</span><span>${x.action === "no_action" ? '<span class="tag t-ok">no action</span>' : '<span class="tag t-warn">' + esc(x.action.replace("_", " ")) + "</span>"} <span class="muted">${esc(x.message)}</span></span>` : "";
+  $("dAc").innerHTML = acRow("CPU", c) + acRow("Memory", m) + acRow("Network", n) || '<span class="muted">-</span>';
+  const pend = s.pendingChanges || [];
+  $("dPending").innerHTML = pend.length ? pend.map((x) => `<div class="mono">${esc(x.kind)}: ${esc(x.from)} → ${esc(x.to)}</div>`).join("") : '<span class="muted">None</span>';
+  if (s.error) toast("Autopilot error: " + s.error, "bad");
+}
+
+function group(entries) {
+  const g = new Map();
+  for (const e of entries.slice().sort((a, b) => a.seq - b.seq)) {
+    if (!g.has(e.adaptation)) g.set(e.adaptation, []);
+    g.get(e.adaptation).push(e);
+  }
+  return [...g.entries()].map(([id, es]) => {
+    const out = es.find((e) => e.phase === "OUTCOME");
+    const decide = es.find((e) => e.phase === "DECIDE");
+    return { id, es, result: out && out.data ? out.data.result : "running",
+      start: es[0].at, end: (out || es[es.length - 1]).at, change: decide ? decide.message : es[0].message };
+  }).reverse();
+}
+
+function renderHistory(entries) {
+  const rows = group(entries);
+  $("histNote").textContent = rows.length + " adaptation" + (rows.length === 1 ? "" : "s");
+  if (!rows.length) { $("hist").innerHTML = '<tr><td colspan="6" class="empty">No adaptations yet. The workload has been compliant since the autopilot started.</td></tr>'; return; }
+  $("hist").innerHTML = rows.map((r) => {
+    const isOpen = open.has(r.id);
+    const steps = r.es.map((e) => {
+      const data = e.data && Object.keys(e.data).length ? `<details><summary>Show data</summary><pre>${esc(JSON.stringify(e.data, null, 2))}</pre></details>` : "";
+      return `<li class="p-${e.phase}"><span class="faint mono">${fmtTime(e.at)}</span><span class="phase">${e.phase}</span><span>${esc(e.message)}${data}</span></li>`;
+    }).join("");
+    return `<tr class="row${isOpen ? " open" : ""}" data-id="${esc(r.id)}" tabindex="0" aria-expanded="${isOpen}">
+        <td><span class="chev">&#x203A;</span></td>
+        <td class="mono">${esc(r.id.split("-")[0])}</td>
+        <td class="muted" style="white-space:nowrap">${fmtDate(r.start)}</td>
+        <td>${esc(r.change)}</td>
+        <td>${tag(r.result)}</td>
+        <td class="muted" style="white-space:nowrap">${r.result === "running" ? "-" : dur(r.start, r.end)}</td></tr>
+      ${isOpen ? `<tr class="detail"><td colspan="6"><ol class="steps">${steps}</ol></td></tr>` : ""}`;
+  }).join("");
+
+  // Control loop: highlight the stages the latest adaptation went through.
+  const latest = rows[0];
+  const seen = new Set(latest.es.map((e) => e.phase));
+  const failed = latest.result !== "adapted" && latest.result !== "running";
+  document.querySelectorAll("#loop .stage").forEach((el) => {
+    const on = seen.has(el.dataset.p);
+    el.classList.toggle("on", on);
+    el.classList.toggle("fail", on && failed && (el.dataset.p === "ROLLBACK" || (latest.result === "rejected" && el.dataset.p === "GUARD")));
+  });
+  $("loopNote").textContent = latest.id.split("-")[0] + " · " + (RESULT[latest.result] || [, latest.result])[1].toLowerCase();
+}
+
+$("hist").addEventListener("click", (ev) => {
+  const tr = ev.target.closest("tr.row");
+  if (!tr || ev.target.closest("details")) return;
+  const id = tr.dataset.id;
+  open.has(id) ? open.delete(id) : open.add(id);
+  refresh();
+});
+$("hist").addEventListener("keydown", (ev) => {
+  if ((ev.key === "Enter" || ev.key === " ") && ev.target.matches("tr.row")) { ev.preventDefault(); ev.target.click(); }
+});
+
+async function getJson(url, opts) {
+  const r = await fetch(url, opts);
+  if (!r.ok) throw new Error(r.status + " " + r.statusText);
+  return r.json();
+}
+
+async function refresh() {
+  try {
+    const [s, t] = await Promise.all([getJson("/autopilot/status"), getJson("/autopilot/timeline?limit=500")]);
+    renderStatus(s);
+    renderHistory(t);
+    setLive(true);
+  } catch (e) {
+    setLive(false);
+  }
+}
+
+function toast(msg, kind) {
+  const el = $("toast");
+  el.className = "toast show " + (kind || "");
+  el.textContent = msg;
+}
+
+async function act(btn, url, label) {
+  document.querySelectorAll(".actions .btn").forEach((b) => (b.disabled = true));
+  toast(label + " started. The result appears in the history; verification can take a few minutes.");
+  try {
+    const r = await getJson(url, {method: "POST"});
+    const kind = r.result === "adapted" || r.result === "compliant" ? "ok" : r.result === "rolled_back" ? "warn" : r.result === "rejected" || r.result === "failed" || r.result === "not_applied" ? "bad" : "";
+    const [, l] = RESULT[r.result] || [, r.result];
+    toast(`${label}: ${l || r.result}${r.detail ? " - " + r.detail : ""}`, kind);
+    if (r.adaptation) open.add(r.adaptation);
+  } catch (e) {
+    toast(label + " failed: " + e.message, "bad");
+  } finally {
+    document.querySelectorAll(".actions .btn").forEach((b) => (b.disabled = false));
+    refresh();
+  }
+}
+
+$("bRun").onclick = (e) => act(e.currentTarget, "/autopilot/run", "Evaluation");
+$("bFail").onclick = (e) => act(e.currentTarget, "/autopilot/drills/failed-adaptation", "Failure drill");
+$("bMove").onclick = (e) => {
+  const n = $("node").value.trim();
+  if (!n) { $("node").focus(); return; }
+  act(e.currentTarget, "/autopilot/drills/move?node=" + encodeURIComponent(n), "Move to " + n);
+};
+refresh();
+setInterval(refresh, 5000);
+setInterval(() => setLive(false), 5000);
+</script>
+</body>
+</html>

@@ -4,16 +4,12 @@
 replicaCount: 1
 
 image:
-  # replace ghcr.io/thanasislt/enact-veleshack-2026/greencharge:latest with your ghcr.io image
-  repository: ghcr.io/thanasislt/enact-veleshack-2026/greencharge
-  pullPolicy: Always
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: "sha-e7b1463"
+  # Built locally and loaded into kind: `make image` (see the root README).
+  repository: greencharge
+  pullPolicy: IfNotPresent
+  tag: "1.5"
 
-# create your secret with the following command:
-# kubectl create secret ghcr --docker-server=<ghcr.io/XXXX> --docker-username=<USERNAME> --docker-password=<GITHUB_TOKEN> --docker-email=<EMAIL>
-imagePullSecrets: 
-  - name: ghcr
+imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
@@ -45,13 +41,33 @@ ingress:
           pathType: Prefix
   tls: []
 
+# Deliberately below the policy model's 1-core minimum: the autopilot detects
+# the violation after deployment and scales the limit up to the policy.
 resources:
   limits:
     cpu: 500m
-    memory: 512Mi
+    memory: 2Gi
   requests:
     cpu: 100m
     memory: 256Mi
+
+autopilot:
+  enabled: true
+  dryRun: false
+  intervalSeconds: 20
+  cooldownSeconds: 60
+  verifyTimeoutSeconds: 240
+  resources:
+    limits:
+      cpu: "1"
+      memory: 768Mi
+    requests:
+      cpu: 100m
+      memory: 384Mi
+
+runtimePolicy:
+  enabled: true
+  name: greencharge-policy
 
 env:
   - name: APP_OPEN_BROWSER

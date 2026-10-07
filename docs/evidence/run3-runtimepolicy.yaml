@@ -1,0 +1,66 @@
+apiVersion: enact.eu/v1alpha1
+kind: RuntimePolicy
+metadata:
+  annotations:
+    meta.helm.sh/release-name: greencharge
+    meta.helm.sh/release-namespace: enact
+  creationTimestamp: "2026-10-07T08:16:41Z"
+  generation: 2
+  labels:
+    app: greencharge
+    app.kubernetes.io/instance: greencharge
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: greencharge
+    app.kubernetes.io/version: "1.0"
+    helm.sh/chart: greencharge-0.1.0
+  name: greencharge-policy
+  namespace: enact
+  resourceVersion: "41310"
+  uid: e41a906d-2da7-4e9a-bf2e-c70dfcd54f50
+spec:
+  appLabels:
+    app: greencharge
+    app.kubernetes.io/instance: greencharge
+    app.kubernetes.io/name: greencharge
+  appNamespace: enact
+  availability:
+    nodeAvailability: 0.9
+    requireReady: true
+  clusterLatency:
+    maxAvgMs: 50
+    mode: Soft
+  cpu:
+    max: 4
+    min: 1
+  greenEnergy:
+    minRatio: 0.6
+    mode: Soft
+  location:
+    mode: Hard
+    regions:
+    - eu-west
+  memory:
+    min: 2048
+  nodeSelector:
+    enact.eu/role: edge
+status:
+  candidates:
+  - availability: 1
+    greenRatio: 0.85
+    name: enact-dev-worker
+    ready: true
+    region: eu-west
+    score: 0
+    zone: eu-west-1a
+  chosenNode: enact-dev-worker
+  cluster:
+    availability: 0.9985476535749224
+    avgLatencyMs: 0
+  conditions:
+  - lastTransitionTime: "2026-10-07T09:55:08Z"
+    message: ""
+    reason: DecisionReady
+    status: "True"
+    type: Available
+  observedGeneration: 2
+  reason: selected based on vector distance score (0.0000)

@@ -1,0 +1,18 @@
+NAME                                                     READY   STATUS    RESTARTS       AGE     IP           NODE                      NOMINATED NODE   READINESS GATES
+alertmanager-infra-kube-prometheus-stac-alertmanager-0   2/2     Running   2 (31m ago)    81m     10.0.1.36    enact-dev-worker2         <none>           <none>
+applpm-controller-manager-5d6b666d97-rgjt2               1/1     Running   1 (8m3s ago)   21m     10.0.0.144   enact-dev-worker          <none>           <none>
+greencharge-7668769879-7xhr7                             1/1     Running   0              2m42s   10.0.0.231   enact-dev-worker          <none>           <none>
+greencharge-autopilot-7578d88495-r7qtf                   1/1     Running   0              7m40s   10.0.1.196   enact-dev-worker2         <none>           <none>
+infra-grafana-6995c69477-gwqg5                           3/3     Running   3 (31m ago)    81m     10.0.1.240   enact-dev-worker2         <none>           <none>
+infra-kube-prometheus-stac-operator-579bb765cb-z7nmp     1/1     Running   1 (31m ago)    81m     10.0.1.225   enact-dev-worker2         <none>           <none>
+infra-kube-state-metrics-b89884c9b-rbq7r                 1/1     Running   2 (31m ago)    81m     10.0.1.1     enact-dev-worker2         <none>           <none>
+infra-prometheus-node-exporter-8cr5j                     1/1     Running   1 (31m ago)    81m     172.18.0.4   enact-dev-control-plane   <none>           <none>
+infra-prometheus-node-exporter-vp4xg                     1/1     Running   1 (31m ago)    81m     172.18.0.2   enact-dev-worker2         <none>           <none>
+infra-prometheus-node-exporter-ztqxv                     1/1     Running   1 (31m ago)    81m     172.18.0.3   enact-dev-worker          <none>           <none>
+kepler-62cw9                                             1/1     Running   2 (31m ago)    77m     172.18.0.4   enact-dev-control-plane   <none>           <none>
+kepler-6txkq                                             1/1     Running   2 (31m ago)    77m     172.18.0.3   enact-dev-worker          <none>           <none>
+kepler-8x94m                                             1/1     Running   1 (31m ago)    77m     172.18.0.2   enact-dev-worker2         <none>           <none>
+monitor-api-666b5bb8dd-q5vpp                             1/1     Running   1 (31m ago)    74m     10.0.1.153   enact-dev-worker2         <none>           <none>
+prometheus-infra-kube-prometheus-stac-prometheus-0       2/2     Running   2 (31m ago)    81m     10.0.0.57    enact-dev-worker          <none>           <none>
+tdcme-agent-6bbb666575-fwcbs                             1/1     Running   1 (31m ago)    73m     10.0.1.215   enact-dev-worker2         <none>           <none>
+tdcme-agent-6bbb666575-rlnvg                             1/1     Running   1 (31m ago)    73m     10.0.0.97    enact-dev-worker          <none>           <none>

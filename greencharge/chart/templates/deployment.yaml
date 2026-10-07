@@ -50,11 +50,18 @@ spec:
           env:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          # A JVM on half a core can take well over a minute to start; the
+          # startup probe holds off liveness until it has.
+          startupProbe:
+            httpGet:
+              path: /chargers
+              port: http
+            periodSeconds: 5
+            failureThreshold: 48
           livenessProbe:
             httpGet:
               path: /chargers
               port: http
-            initialDelaySeconds: 15
             periodSeconds: 10
           readinessProbe:
             httpGet:
