@@ -103,7 +103,7 @@ APPLPM_UPSTREAM := https://gitlab.eclipse.org/eclipse-research-labs/enact-projec
 APPLPM_COMMIT   := $(shell cat operator-fix/UPSTREAM_COMMIT 2>/dev/null)
 NS              := enact
 
-.PHONY: image operator-fix deploy autopilot-ui app-ui evidence test labels
+.PHONY: image operator-fix deploy autopilot-ui app-ui evidence test labels load
 
 # Re-apply the node labels that `make setup` sets through the APPLPM API, using
 # kubectl, in case APPLPM was not ready when setup reached that step.
@@ -150,6 +150,10 @@ app-ui:
 # Every evidence record the autopilot has written, as JSON lines.
 evidence:
 	kubectl -n $(NS) logs deploy/greencharge-autopilot | grep -o 'EVIDENCE .*' | cut -c10-
+
+# A 3 minute traffic burst for the monitoring step (watch Grafana meanwhile).
+load:
+	NS=$(NS) bash scripts/load.sh 180
 
 # ENACT SDK workflow without the Eclipse UI: the same ENACT APM libraries the
 # SDK's Application Packaging, Application Policies and Dataspaces modules use.

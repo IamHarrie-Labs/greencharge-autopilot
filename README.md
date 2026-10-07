@@ -19,6 +19,13 @@ checks that the app came back healthy and undoes the change if it did not.
 Everything here was run on the challenge's own 3 node kind cluster (`make setup`).
 Each adaptation is written to an evidence log that anyone can inspect.
 
+**In short**
+
+- App out of policy (half a core on the wrong node) was fixed and verified in 105 s
+- A change that could not become healthy was rolled back in 100 s
+- A move to a node outside the allowed region was refused and the app was left alone
+- The ENACT operator could not make any decision as shipped. Our patch fixes that, with tests
+
 ![Hand drawn overview of how GreenCharge Autopilot fits into the ENACT cluster](docs/images/architecture.png)
 
 ---
@@ -70,6 +77,31 @@ Each record also keeps the data behind it. That includes the measured limits
 and usage, the full Application Controller recommendation, the operator's
 decision with its reason, and the state before and after.
 
+### Monitoring under load (step 6 of the brief)
+
+`make load` sends 3 minutes of traffic at GreenCharge from inside the cluster
+(12 workers calling `/route` and `/chargers`). The chart below comes from the
+cluster's own Prometheus and Kepler during one such burst on 7 October. The
+same series are on the Grafana dashboards at <http://localhost:3000>, and the
+raw query results are in [docs/evidence/load/](docs/evidence/load/).
+
+![CPU, memory and Kepler power of GreenCharge during a 3 minute traffic burst](docs/images/load-burst.png)
+
+| | Before | During the burst | After |
+|---|---|---|---|
+| GreenCharge CPU | 0.01 cores | 0.97 cores (held at its 1 core limit) | 0.01 cores |
+| GreenCharge memory | 355 MiB | 380 MiB | 377 MiB |
+| GreenCharge power (Kepler) | about 1 W | about 27 W, peak 36 W | under 1 W |
+| Whole laptop power (Kepler) | about 91 W | about 173 W | about 91 W |
+
+The autopilot stayed *Compliant* and changed nothing during the burst, which
+is the correct behaviour for this policy. The Application Controller in version
+1.0.0 judges the resources the app is given (a limit of 1 to 4 cores), not how
+busy it is, so a 1 core limit is within policy even when it is fully used.
+Scaling on load would need a usage rule in the policy model, and that is the
+next thing we would add. Kepler figures on a laptop come from its model and
+not from hardware counters, so treat them as a relative signal.
+
 ## Using the ENACT SDK from scripts
 
 The Eclipse modules of the ENACT SDK are a user interface on top of the ENACT
@@ -103,6 +135,11 @@ GreenCharge now serves `/health`, so the generated chart works as it is.
 | `operator-fix/` | 5, placement | A patch to the ENACT operator so it can read metrics, make a decision and explain it. Details are in [operator-fix/README.md](operator-fix/README.md) |
 | `chart/templates/deployment.yaml` | | Adds a startup probe. A JVM on half a core needs more than a minute to start and the liveness probe was killing it |
 | `SecurityConfig.java` | | The Application Controller library quietly turns on Spring Security, which made every endpoint answer 401, health probes included |
+
+The brief names the image `greencharge:1.0`. Our charts use later tags (`1.5` in
+the SDK generated chart, `1.7` in the chart we deploy) because each fix above
+produced a new build, and a new tag makes kind load the new image instead of a
+cached one.
 
 ### The control loop
 
@@ -145,6 +182,7 @@ make image          # build GreenCharge and load it into kind
 make operator-fix   # build the patched ENACT operator and give it the TDCME token
 make deploy         # GreenCharge, the RuntimePolicy and the autopilot, through Helm
 make autopilot-ui   # opens the console on localhost port 8090
+make load           # 3 minutes of traffic for the monitoring step
 ```
 
 To repeat three of the scenarios above, run the following.

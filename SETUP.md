@@ -335,8 +335,8 @@ curl http://localhost:35580/api/v1/namespaces/enact/policies
 If you are developing or modeling using the **ENACT SDK**:
 
 1. **Read the Full Installation Guide:**
-   - Open the included HTML guide in your browser: [install-guide.html](install-guide.html)
-   - Or open the PDF version: `ENACT SDK Installation Guide.pdf`
+   - Open the included HTML guide in your browser: [install-guide.html](docs/organisers/install-guide.html)
+   - Or open the PDF version: `docs/organisers/ENACT SDK Installation Guide.pdf`
 2. **Quick Summary:**
    - Install **Java 21+** and **Eclipse IDE for Java Developers (2025-12 / 4.38+)**.
    - Open Eclipse and navigate to **Help → Eclipse Marketplace…**.
