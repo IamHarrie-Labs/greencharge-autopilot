@@ -290,6 +290,13 @@ on the live cluster.
 - GreenCharge runs as a single replica. The rollout check in the verify step is
   written for any number of replicas but has only been tried with one.
 
+## Slides and video
+
+The pitch deck is [docs/submission/GreenCharge-Autopilot-slides.pptx](docs/submission/GreenCharge-Autopilot-slides.pptx),
+with image copies of each slide in [docs/submission/slides/](docs/submission/slides/).
+A 52 second overview video is at
+[docs/submission/GreenCharge-Autopilot-demo.mp4](docs/submission/GreenCharge-Autopilot-demo.mp4).
+
 ## Licence
 
 Apache-2.0, the same licence as the ENACT components this builds on. See
