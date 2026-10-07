@@ -1,6 +1,6 @@
-# GreenCharge — ENACT Hackathon Challenge
+# GreenCharge, the ENACT Hackathon Challenge
 
-A smart city routes EV drivers to the **greenest available charger**. Grid carbon intensity swings hour by hour, so the greenest charger changes — but the live carbon feed belongs to the energy **utility** and is shared under a sovereign **dataspace contract**. Furthermore, the service must run **in-region** on **green-powered compute nodes** governed by declarative policies.
+A smart city routes EV drivers to the **greenest available charger**. Grid carbon intensity swings hour by hour, so the greenest charger changes, but the live carbon feed belongs to the energy **utility** and is shared under a sovereign **dataspace contract**. Furthermore, the service must run **in-region** on **green-powered compute nodes** governed by declarative policies.
 
 Your mission is to take GreenCharge from a local mock into a policy-aware, self-adapting, cloud-native application using the **ENACT SDK** and the **Application Controller (AC)** library.
 
@@ -33,7 +33,7 @@ charger. Until you complete Step 1, it uses a built-in **mock** carbon feed
 
 | # | Capability      | What you do                                                                                     |
 |---|-----------------|-------------------------------------------------------------------------------------------------|
-| 1 | Dataspaces      | Consume the utility's `grid-carbon-intensity` asset; the transfer drops a carbon file on your machine — set `carbon.feed.file` to its path. |
+| 1 | Dataspaces      | Consume the utility's `grid-carbon-intensity` asset; the transfer drops a carbon file on your machine, so set `carbon.feed.file` to its path. |
 | 2 | Packaging       | Generate a Helm chart: image `greencharge:1.0`, port 8080, service, ingress `greencharge.local`. |
 | 3 | App Controller  | Inject **Energy efficiency + Elasticity + Load balancing** modules into the pom.                |
 | 4 | Policies        | Author a RuntimePolicy: **Soft** green ≥ 0.6, **Hard** region `eu-west`, availability 0.9.      |
@@ -54,14 +54,14 @@ carbon:
     file: REPLACE_ME   # <- path to the carbon file transferred in Step 1
 ```
 
-The transferred file is JSON — a map of district to carbon intensity (gCO₂/kWh):
+The transferred file is JSON, a map of district to carbon intensity (gCO₂/kWh):
 
 ```json
 { "Riverside": 95, "Uptown": 180, "OldTown": 300, "Harbor": 150 }
 ```
 
 The instant that file is wired in, the page's picks change (here Harbor becomes
-greener than Uptown). That "aha" is the payoff of the dataspace step — and it
+greener than Uptown). That "aha" is the payoff of the dataspace step, and it
 costs you zero code.
 
 ## 📋 The Challenge Tasks

@@ -1,4 +1,4 @@
-# ENACT Hackathon — Environment Setup & Student Guide
+# ENACT Hackathon Environment Setup & Student Guide
 
 Welcome to the **ENACT Hackathon**! 🚀
 
@@ -336,7 +336,7 @@ If you are developing or modeling using the **ENACT SDK**:
 
 1. **Read the Full Installation Guide:**
    - Open the included HTML guide in your browser: [install-guide.html](install-guide.html)
-   - Or open the PDF version: `ENACT SDK — Installation Guide.pdf`
+   - Or open the PDF version: `ENACT SDK Installation Guide.pdf`
 2. **Quick Summary:**
    - Install **Java 21+** and **Eclipse IDE for Java Developers (2025-12 / 4.38+)**.
    - Open Eclipse and navigate to **Help → Eclipse Marketplace…**.

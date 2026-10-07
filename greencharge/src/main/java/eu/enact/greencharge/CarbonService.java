@@ -23,7 +23,7 @@ import eu.enact.greencharge.model.CarbonSnapshot;
  * contract and <strong>transfers a data file onto this machine</strong>; the
  * team then points {@code carbon.feed.file} at that file. Until then this falls
  * back to a built-in mock so the app still runs. The instant a real file is
- * configured, the routing picks change — that is the payoff of the dataspace step.
+ * configured, the routing picks change. That is the payoff of the dataspace step.
  *
  * <p>The transferred file is JSON: a map of district to carbon intensity in
  * gCO2/kWh, e.g. {@code {"Riverside":95,"Uptown":180,"OldTown":300,"Harbor":150}}.

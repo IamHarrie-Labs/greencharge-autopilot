@@ -45,7 +45,7 @@ class BrowserLauncher {
                 log.info("GreenCharge UI available at {}", url);
             }
         } catch (Exception e) {
-            log.warn("Could not open browser automatically — open {} manually.", url);
+            log.warn("Could not open browser automatically. Open {} manually.", url);
         }
     }
 }

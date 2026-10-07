@@ -245,7 +245,7 @@
         <div class="tile-h"><h2 id="hOps">Operations</h2><span class="note">audited in the history</span></div>
         <div class="tile-b actions">
           <button class="btn btn-primary" id="bRun">Run evaluation now <span aria-hidden="true">&rarr;</span></button>
-          <button class="btn btn-danger" id="bFail">Failure drill: unschedulable change <span aria-hidden="true">&rarr;</span></button>
+          <button class="btn btn-danger" id="bFail">Failure drill (unschedulable change) <span aria-hidden="true">&rarr;</span></button>
           <div class="hint">Applies 64Gi of memory, which no node has. Expect the verify step to time out and a rollback (about 2&nbsp;minutes).</div>
           <div class="inline">
             <input id="node" placeholder="node name, e.g. enact-dev-control-plane" aria-label="Target node">
@@ -259,7 +259,7 @@
   </div>
 </main>
 <footer>
-  Every step is also written to the autopilot's log (<code>make evidence</code>). API: <code>GET /autopilot/status</code>, <code>GET /autopilot/timeline</code>.
+  Every step is also written to the autopilot's log (<code>make evidence</code>) and can be read from <code>GET /autopilot/status</code> and <code>GET /autopilot/timeline</code>.
   Built for Veles Hack 2026 &middot; Challenge 3 (ENACT) &middot; Apache-2.0
 </footer>
 
@@ -337,7 +337,7 @@ function renderStatus(s) {
 
   const c = rec.cpu || {}, m = rec.memory || {}, n = rec.network || {};
   $("kCpu").textContent = o.cpuLimit === "1" ? "1 core" : (o.cpuLimit || "-");
-  $("kCpuFoot").textContent = c.minRequired !== undefined ? `policy ${c.minRequired}–${c.maxAllowed} cores` + (o.cpuUsagePct >= 0 ? ` · ${o.cpuUsagePct}% used` : "") : "-";
+  $("kCpuFoot").textContent = c.minRequired !== undefined ? `policy ${c.minRequired} to ${c.maxAllowed} cores` + (o.cpuUsagePct >= 0 ? ` · ${o.cpuUsagePct}% used` : "") : "-";
   $("kMem").textContent = o.memoryLimit || "-";
   $("kMemFoot").textContent = m.minRequired ? `policy ${m.minRequired}` + (o.memoryUsagePct >= 0 ? ` · ${o.memoryUsagePct}% used` : "") : "-";
   const rtt = o.healthLatencyMs;
@@ -358,7 +358,7 @@ function renderStatus(s) {
   const acRow = (label, x) => x && x.action ? `<span class="faint">${label}</span><span>${x.action === "no_action" ? '<span class="tag t-ok">no action</span>' : '<span class="tag t-warn">' + esc(x.action.replace("_", " ")) + "</span>"} <span class="muted">${esc(x.message)}</span></span>` : "";
   $("dAc").innerHTML = acRow("CPU", c) + acRow("Memory", m) + acRow("Network", n) || '<span class="muted">-</span>';
   const pend = s.pendingChanges || [];
-  $("dPending").innerHTML = pend.length ? pend.map((x) => `<div class="mono">${esc(x.kind)}: ${esc(x.from)} → ${esc(x.to)}</div>`).join("") : '<span class="muted">None</span>';
+  $("dPending").innerHTML = pend.length ? pend.map((x) => `<div class="mono">${esc(x.kind)} ${esc(x.from)} → ${esc(x.to)}</div>`).join("") : '<span class="muted">None</span>';
   if (s.error) toast("Autopilot error: " + s.error, "bad");
 }
 

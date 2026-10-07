@@ -15,7 +15,7 @@
     <artifactId>greencharge</artifactId>
     <version>1.0.0</version>
     <name>GreenCharge</name>
-    <description>Carbon-aware EV charger routing service — ENACT hackathon flagship app</description>
+    <description>Carbon-aware EV charger routing service, the ENACT hackathon flagship app</description>
 
     <properties>
         <java.version>21</java.version>

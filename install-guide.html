@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ENACT SDK — Installation Guide</title>
+<title>ENACT SDK Installation Guide</title>
 <style>
   :root{
     --ink:#1a2430; --muted:#5b6b7a; --line:#e3e9ef; --soft:#f4f7fa; --panel:#ffffff;
@@ -83,7 +83,7 @@
   /* url block */
   .urlbox{background:#0f1720;color:#7ff0cf;border-radius:10px;padding:14px 16px;font-family:"SFMono-Regular",Consolas,Menlo,monospace;font-size:.9rem;word-break:break-all;margin:12px 0;border:1px solid #1d2b39}
 
-  /* screenshots — every shot sits in an identical 2:1 frame (contain, no cropping) */
+  /* screenshots, every shot sits in an identical 2:1 frame (contain, no cropping) */
   figure.shot{margin:14px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;box-shadow:var(--shadow)}
   figure.shot .frame{aspect-ratio:2 / 1;background:#eef3f7;display:grid;place-items:center;overflow:hidden}
   figure.shot .frame img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}
@@ -139,7 +139,7 @@
       <img src="logo.png" alt="ENACT logo" onerror="this.style.display='none'">
       <h1>Installing Eclipse IDE &amp; the ENACT SDK</h1>
     </div>
-    <p class="lead">A step-by-step guide to get your development environment ready — install the Eclipse IDE, then add the ENACT Software Development Kit from either the Eclipse Marketplace or the p2 update site.</p>
+    <p class="lead">A step-by-step guide to get your development environment ready, install the Eclipse IDE, then add the ENACT Software Development Kit from either the Eclipse Marketplace or the p2 update site.</p>
     <div class="meta">
       <span>⏱ ~15 minutes</span>
       <span>☕ Java 21+</span>
@@ -157,8 +157,8 @@
       <li><a href="#prereq">Check prerequisites</a></li>
       <li><a href="#eclipse">Install the Eclipse IDE</a></li>
       <li><a href="#sdk">Install the ENACT SDK</a></li>
-      <li><a href="#marketplace">Option A — Eclipse Marketplace</a></li>
-      <li><a href="#p2">Option B — p2 update site</a></li>
+      <li><a href="#marketplace">Option A, Eclipse Marketplace</a></li>
+      <li><a href="#p2">Option B, p2 update site</a></li>
       <li><a href="#verify">Verify the installation</a></li>
     </ol>
   </div>
@@ -177,7 +177,7 @@
     </table>
     <div class="note tip">
       <h4>Already have Eclipse installed?</h4>
-      <p>If your Eclipse is <b>2025-12 (4.38) or newer</b> on Java 21+, skip straight to <a href="#sdk">Step&nbsp;2 — Install the ENACT SDK</a>.</p>
+      <p>If your Eclipse is <b>2025-12 (4.38) or newer</b> on Java 21+, skip straight to <a href="#sdk">Step&nbsp;2, Install the ENACT SDK</a>.</p>
     </div>
   </section>
 
@@ -190,18 +190,18 @@
     <ol class="steps">
       <li>
         <h4>Download the Eclipse Installer</h4>
-        <p>Go to <a href="https://www.eclipse.org/downloads/">eclipse.org/downloads</a> and open the <b>Download</b> menu, then choose the build for your machine — <span class="kbd">Download x86_64</span> for most PCs, or <span class="kbd">Download AArch64</span> for Apple Silicon / ARM. This downloads the <b>Eclipse Installer</b>.</p>
+        <p>Go to <a href="https://www.eclipse.org/downloads/">eclipse.org/downloads</a> and open the <b>Download</b> menu, then choose the build for your machine, <span class="kbd">Download x86_64</span> for most PCs, or <span class="kbd">Download AArch64</span> for Apple Silicon / ARM. This downloads the <b>Eclipse Installer</b>.</p>
         <figure class="shot">
           <div class="frame">
             <img src="install-guide-images/Eclipse%20downloads%20page.png" alt="Eclipse downloads page" onerror="this.style.display='none';this.closest('.frame').classList.add('missing')">
             <div class="ph"><span class="cam">📷</span><span class="lbl">Eclipse downloads page</span></div>
           </div>
-          <figcaption><b>Figure 1.</b> The Eclipse downloads page — expand <b>Download</b> and pick <b>x86_64</b> or <b>AArch64</b>.</figcaption>
+          <figcaption><b>Figure 1.</b> The Eclipse downloads page, expand <b>Download</b> and pick <b>x86_64</b> or <b>AArch64</b>.</figcaption>
         </figure>
       </li>
       <li>
         <h4>Pick the “Eclipse IDE for Java Developers” package</h4>
-        <p>Launch the downloaded installer. From the list of packages, select <b>“Eclipse IDE for Java Developers”</b> — it includes everything the ENACT SDK needs.</p>
+        <p>Launch the downloaded installer. From the list of packages, select <b>“Eclipse IDE for Java Developers”</b>, it includes everything the ENACT SDK needs.</p>
         <figure class="shot">
           <div class="frame">
             <img src="install-guide-images/Installer%20package%20selection.png" alt="Eclipse Installer package list" onerror="this.style.display='none';this.closest('.frame').classList.add('missing')">
@@ -212,7 +212,7 @@
       </li>
       <li>
         <h4>Choose the Java VM and install folder</h4>
-        <p>Confirm the Java VM the installer offers (a suitable Java&nbsp;21+ JRE — the current installer ships Java&nbsp;25), pick an <b>Installation Folder</b>, and click <span class="kbd">INSTALL</span>. Accept the license agreement when prompted.</p>
+        <p>Confirm the Java VM the installer offers (a suitable Java&nbsp;21+ JRE, the current installer ships Java&nbsp;25), pick an <b>Installation Folder</b>, and click <span class="kbd">INSTALL</span>. Accept the license agreement when prompted.</p>
         <figure class="shot">
           <div class="frame">
             <img src="install-guide-images/Install%20folder.png" alt="Eclipse Installer VM and install folder" onerror="this.style.display='none';this.closest('.frame').classList.add('missing')">
@@ -223,7 +223,7 @@
       </li>
       <li>
         <h4>Launch Eclipse and choose a workspace</h4>
-        <p>Click <span class="kbd">Launch</span> when the install finishes. Eclipse asks for a <b>workspace</b> folder — this is where your projects live. Accept the default or pick your own, then click <span class="kbd">Launch</span>.</p>
+        <p>Click <span class="kbd">Launch</span> when the install finishes. Eclipse asks for a <b>workspace</b> folder, this is where your projects live. Accept the default or pick your own, then click <span class="kbd">Launch</span>.</p>
         <figure class="shot">
           <div class="frame">
             <img src="install-guide-images/Workspace%20selector.png" alt="Eclipse workspace launcher" onerror="this.style.display='none';this.closest('.frame').classList.add('missing')">
@@ -251,11 +251,11 @@
     <div class="opts">
       <div class="opt recommended">
         <span class="badge">Recommended</span>
-        <h4>Option A — Eclipse Marketplace</h4>
+        <h4>Option A, Eclipse Marketplace</h4>
         <p>Search &amp; click Install from inside Eclipse. Easiest for most people. → <a href="#marketplace">Go to Option A</a></p>
       </div>
       <div class="opt">
-        <h4>Option B — p2 update site</h4>
+        <h4>Option B, p2 update site</h4>
         <p>Add the update-site URL manually via “Install New Software”. → <a href="#p2">Go to Option B</a></p>
       </div>
     </div>
@@ -263,7 +263,7 @@
 
   <!-- ---------- OPTION A: MARKETPLACE ---------- -->
   <section id="marketplace">
-    <h3 style="font-size:1.2rem;color:var(--brand)">Option A — Eclipse Marketplace</h3>
+    <h3 style="font-size:1.2rem;color:var(--brand)">Option A, Eclipse Marketplace</h3>
     <ol class="steps">
       <li>
         <h4>Open the Eclipse Marketplace</h4>
@@ -299,7 +299,7 @@
         </figure>
         <div class="note warn">
           <h4>“Warning: unsigned content” is expected</h4>
-          <p>This Beta release ships unsigned JARs. It's safe to proceed for the hackathon — choose <b>Install anyway / Trust Selected</b>.</p>
+          <p>This Beta release ships unsigned JARs. It's safe to proceed for the hackathon, choose <b>Install anyway / Trust Selected</b>.</p>
         </div>
       </li>
     </ol>
@@ -313,7 +313,7 @@
 
   <!-- ---------- OPTION B: P2 ---------- -->
   <section id="p2">
-    <h3 style="font-size:1.2rem;color:var(--brand)">Option B — p2 update site</h3>
+    <h3 style="font-size:1.2rem;color:var(--brand)">Option B, p2 update site</h3>
     <p class="lede">Use this if you'd rather add the update site by URL. This is the update-site address:</p>
     <div class="urlbox">https://pages.eclipse.dev/eclipse-research-labs/enact-project/software-development-kit/releases/latest/</div>
 
@@ -331,13 +331,13 @@
       </li>
       <li>
         <h4>Add the update site and select the complete SDK</h4>
-        <p>Click <span class="kbd">Add…</span> next to <b>Work with</b>, then in the <b>Add Repository</b> dialog set <b>Name</b> to <code>ENACT SDK</code> and paste the URL above into <b>Location</b>, and click <span class="kbd">Add</span>. Back in the list, expand <b>ENACT SDK — Complete</b> and tick <b>“ENACT SDK — Complete (install everything)”</b>, then click <span class="kbd">Next</span>.</p>
+        <p>Click <span class="kbd">Add…</span> next to <b>Work with</b>, then in the <b>Add Repository</b> dialog set <b>Name</b> to <code>ENACT SDK</code> and paste the URL above into <b>Location</b>, and click <span class="kbd">Add</span>. Back in the list, expand <b>ENACT SDK, Complete</b> and tick <b>“ENACT SDK, Complete (install everything)”</b>, then click <span class="kbd">Next</span>.</p>
         <figure class="shot">
           <div class="frame">
             <img src="install-guide-images/Add%20Repository%20dialog.png" alt="Available Software list with the ENACT SDK repository added" onerror="this.style.display='none';this.closest('.frame').classList.add('missing')">
-            <div class="ph"><span class="cam">📷</span><span class="lbl">Available Software — select the complete feature</span></div>
+            <div class="ph"><span class="cam">📷</span><span class="lbl">Available Software, select the complete feature</span></div>
           </div>
-          <figcaption><b>Figure 9.</b> With the update-site URL in <b>Work with</b>, tick <b>ENACT SDK — Complete (install everything)</b>.</figcaption>
+          <figcaption><b>Figure 9.</b> With the update-site URL in <b>Work with</b>, tick <b>ENACT SDK, Complete (install everything)</b>.</figcaption>
         </figure>
       </li>
       <li>
@@ -346,7 +346,7 @@
         <figure class="shot">
           <div class="frame">
             <img src="install-guide-images/Full%20package%20list.png" alt="Install Details listing the ENACT SDK modules" onerror="this.style.display='none';this.closest('.frame').classList.add('missing')">
-            <div class="ph"><span class="cam">📷</span><span class="lbl">Install Details — items to be installed</span></div>
+            <div class="ph"><span class="cam">📷</span><span class="lbl">Install Details, items to be installed</span></div>
           </div>
           <figcaption><b>Figure 10.</b> The Install Details page listing the complete SDK and all its modules.</figcaption>
         </figure>
@@ -356,7 +356,7 @@
         <p>Accept the <b>Apache&nbsp;2.0</b> license and click <span class="kbd">Finish</span>. If the <b>unsigned content</b> warning appears, choose <span class="kbd">Install anyway / Trust Selected</span>. <b>Restart Eclipse</b> when prompted.</p>
         <div class="note info">
           <h4>Want a specific version?</h4>
-          <p>A pinned release is always available at <code>…/releases/&lt;tag&gt;/</code> — for example <code>…/releases/v1.3.0/</code> — in addition to the <code>latest</code> alias used above.</p>
+          <p>A pinned release is always available at <code>…/releases/&lt;tag&gt;/</code>, for example <code>…/releases/v1.3.0/</code>, in addition to the <code>latest</code> alias used above.</p>
         </div>
       </li>
     </ol>
@@ -394,7 +394,7 @@
       </li>
       <li>
         <h4>Confirm the SDK is running</h4>
-        <p>The Control Panel opens docked to the right, with a navigation bar of module tabs — <b>Home</b>, <b>Application Packaging</b>, <b>Dataspaces</b>, and more. If not all tabs fit, use the <b>‹ ›</b> arrows at the ends of the bar to page through the rest (AI Assistant, Application Controller, Application Policies). You're ready to go.</p>
+        <p>The Control Panel opens docked to the right, with a navigation bar of module tabs (<b>Home</b>, <b>Application Packaging</b>, <b>Dataspaces</b> and more). If not all tabs fit, use the <b>‹ ›</b> arrows at the ends of the bar to page through the rest (AI Assistant, Application Controller, Application Policies). You're ready to go.</p>
         <figure class="shot">
           <div class="frame">
             <img src="install-guide-images/Workspace%20view.png" alt="ENACT SDK Control Panel running in the workbench" onerror="this.style.display='none';this.closest('.frame').classList.add('missing')">
@@ -407,7 +407,7 @@
 
     <div class="note tip">
       <h4>Updating later</h4>
-      <p>To get new releases, run <b>Help → Check for Updates</b>. The SDK upgrades in place — no manual uninstall needed.</p>
+      <p>To get new releases, run <b>Help → Check for Updates</b>. The SDK upgrades in place, no manual uninstall needed.</p>
     </div>
 
     <div class="note warn">
